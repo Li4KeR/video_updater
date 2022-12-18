@@ -3,3 +3,31 @@
 .main_logo{
     height: 15px;
 }
+
+.form_about {
+    display: flex;
+}
+
+.form_about form {
+    padding-right: 10px;
+}
+
+.block_status{
+    display: flex;
+}
+
+.block_status p{
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px;
+}
+
+.status_ok {
+    background-color: green;
+    color: white;
+}
+
+.status_not_ok {
+    background-color: red;
+    color: white;
+}

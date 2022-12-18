@@ -1,9 +1,7 @@
 from base64 import encode
 import socket
 import os
-from ftplib import FTP
-
-
+import shutil
 
 """ Переменные"""
 """ /-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/ """
@@ -11,11 +9,9 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # создаем со�
 sock.bind(('', 55000))  # связываем сокет с портом, где он будет ожидать сообщения
 sock.listen(30)  # указываем сколько может сокет принимать соединений
 
-path_video_TV = 'C:\\Users\\ngrigorev\\Documents\\py\\video\\'
-
-ftp_host = 'ftp.example.com'
-ftp_user = 'user'
-ftp_pass = 'pass'
+path_video_TV = "C:\\video\\"
+file_path = f"\\\\192.168.100.92\\public\\video\\all"
+my_ip = socket.gethostbyname(socket.getfqdn())
 """ /-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/ """
 
 
@@ -24,66 +20,58 @@ def check_video_tv(data):
     if sorted(data) == sorted(video_names):
         return True
     else:
-        #parse_video() ??
+        # parse_video() ??
         return video_names
 
 
 def download_video_TV(data):
     try:
-        ftp = FTP(ftp_host)
-        ftp.login(ftp_user, ftp_pass)
-        my_file = open(data, 'wb')
-        ftp.retrbinary('RETR ' + data, my_file.write, 1024)
-        ftp.quit()
-        my_file.close()
-        return True
+        feed_back = f'DownloadVideo {data} на хосте {my_ip} - OK'
+        print(f'Starting download video {data}')
+        shutil.copy2(f'{file_path}\\{data}', f'{path_video_TV}')
+        print(feed_back)
+        return feed_back
     except:
         return f'Error download to ftp: {data}'
 
 
-def delete_video_ftp(data):
-    try:
-        ftp = FTP(ftp_host)
-        ftp.login(ftp_user, ftp_pass)
-        ftp.delete(data)
-        ftp.quit()
-        return True
-    except:
-        return f'Error delete on ftp: {data}'
-
-
 def delete_video_TV(data):
     try:
-        os.remove(f'{path_video_TV}{data}')
-        return True
+        print(f'Starting delete {data} на хосте {my_ip}')
+        os.remove(f'{path_video_TV}\\{data}')
+        feed_back = f'DeleteVideo {data} на хосте {my_ip}- OK'
+        return feed_back
     except:
         return f'Error delete on ftp: {data}'
 
 
-def parse_video(): # for what?!
-    ftp = FTP(ftp_host)
-    ftp.login(ftp_user, ftp_pass)
-    ftp.retrlines('LIST')
+def parse_video(data):  # for what?!
+    videos_on_tv = []
+    for filename in os.listdir(path=path_video_TV):
+        videos_on_tv.append(filename)
+    feed_back = f'DownloadVideo {data} на хосте {my_ip}- OK'
+    return feed_back
 
 
 while True:
     connect, addr = sock.accept()
     print(addr)
     bytes_data = connect.recv(1024)
-    data = bytes_data.decode('UTF-8').split('_')
-    data_check = data.pop(0)
+    received_data = bytes_data.decode('UTF-8').split('_____')
+    data_check = received_data.pop(0)
+    data = received_data[0]
     print(data)
     if data_check == 'CheckOldVideo':
-        videos = check_video_TV(data)
+        videos = check_video_tv(data)
         print(videos)
     elif data_check == 'DownloadVideo':
-        download_video_TV(data)
+        feedback = download_video_TV(data)
     elif data_check == 'DeleteVideo':
-        delete_video_ftp(data)
+        feedback = delete_video_TV(data)
     elif data_check == 'ParseVideo':
-        parse_video(data)
+        feedback = parse_video(data)
     else:
         print(data)
-    data_send = "test_back"
-    connect.send(bytes(data_send, encoding = 'UTF-8'))
+    data_send = feedback
+    connect.send(bytes(data_send, encoding='UTF-8'))
     connect.close()

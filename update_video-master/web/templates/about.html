@@ -5,10 +5,50 @@ About
 {% endblock %}
 
 {% block content %}
-    <h1>Телевизор {{ id }}</h1>
-<ul>
-{% for video in videos %}
-    <li>{{ video }}</li>
-{% endfor %}
-</ul>
+    <h1>{{ name }}</h1>
+    <div class="block_status">
+        <p>Статус:</p>
+        {% if ping == True%}
+        <p class="status_ok">Доступен</p>
+        {% else %}
+        <p class="status_not_ok">Не доступен</p>
+        {% endif %}
+    </div>
+    <br>
+    <div class="form_about">
+
+        <form action="/about/{{ id }}" method="POST">
+            <input type="hidden" name="index" value="PlayVideo_{{ id }}">
+            <input type="submit" class="btn btn-dark" value="Play">
+        </form>
+
+        <form action="/about/{{ id }}" method="POST">
+            <input type="hidden" name="index" value="PauseVideo_{{ id }}">
+            <input type="submit" class="btn btn-dark" value="Pause">
+        </form>
+
+        <form action="/about/{{ id }}" method="POST">
+            <input type="hidden" name="index" value="Restart_{{ id }}">
+            <input type="submit" class="btn btn-dark" value="Restart">
+        </form>
+
+        <form action="/about/{{ id }}" method="POST">
+            <input type="hidden" name="index" value="CheckPlaylist_{{ id }}">
+            <input type="submit" class="btn btn-dark" value="Check Playlist" disabled>
+        </form>
+
+        <form action="/about/{{ id }}" method="POST">
+            <input type="hidden" name="index" value="Ping_{{ id }}">
+            <input type="submit" class="btn btn-dark" value="Ping">
+        </form>
+    </div>
+    <br>
+<!--    <div class="list_all_video">-->
+<!--        <ul>-->
+<!--        {% for video in videos %}-->
+<!--            <li>{{ video }}</li>-->
+<!--        {% endfor %}-->
+<!--        </ul>-->
+<!--    </div>-->
+    <a class="btn btn-dark" href="/edit/{{ id }}">Редактировать видео</a>
 {% endblock %}

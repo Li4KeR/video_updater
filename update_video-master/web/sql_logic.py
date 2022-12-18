@@ -33,11 +33,11 @@ def check_sql():
         return False
 
 
-def add_nuke(nuke_name, nuke_ip):
+def add_nuke(nuke_name, nuke_ip, comment):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
     try:
-        cursor.execute(f'INSERT INTO nuke(name, ip) VALUES("{nuke_name}", "{nuke_ip}")')
+        cursor.execute(f'INSERT INTO nuke(name, ip, comment) VALUES("{nuke_name}", "{nuke_ip}", "{comment}")')
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
         print(error_text)
@@ -45,27 +45,58 @@ def add_nuke(nuke_name, nuke_ip):
     cursor.close()
 
 
-def add_video(name, ftp_path):
+def add_video(name, full_name):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
-    vid_info = name, ftp_path
     try:
-        cursor.execute(f'INSERT INTO video(name, ftp_path) VALUES("{name}", "{ftp_path}")')
+        cursor.execute(f'INSERT INTO video(name, full_name) VALUES("{name}", "{full_name}")')
     except sqlite3.Error as error:
         print(error)
     conn.commit()
     cursor.close()
 
 
-def linking(id_nuke, id_video):
+def name_nuke(id):
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    try:
+        name = cursor.execute(f'SELECT name FROM nuke where id="{id}"').fetchall()
+        return name[0]
+    except sqlite3.Error as error:
+        print(error)
+    conn.commit()
+    cursor.close()
+
+
+def create_link_video_and_nuke(id_nuke, id_video):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
     try:
         cursor.execute(f'INSERT INTO linking(id_nuke, id_video) VALUES("{id_nuke}", "{id_video}")')
+        conn.commit()
+        ip_nuke = cursor.execute(f'SELECT ip FROM nuke where id="{id_nuke}"').fetchall()[0]
+        video_name = cursor.execute(f'SELECT name FROM video where id="{id_video}"').fetchall()[0]
+        full_name = cursor.execute(f'SELECT full_name FROM video where id="{id_video}"').fetchall()[0]
+        return ip_nuke[0], video_name[0], full_name[0]
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
         print(error_text)
-    conn.commit()
+    cursor.close()
+
+
+def delete_link_video_and_nuke(id_nuke, id_video):
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f'DELETE FROM linking WHERE id_nuke="{id_nuke}" AND id_video="{id_video}"')
+        conn.commit()
+        ip_nuke = cursor.execute(f'SELECT ip FROM nuke where id="{id_nuke}"').fetchall()[0]
+        video_name = cursor.execute(f'SELECT name FROM video where id="{id_video}"').fetchall()[0]
+        full_name = cursor.execute(f'SELECT full_name FROM video where id="{id_video}"').fetchall()[0]
+        return ip_nuke[0], video_name[0], full_name[0]
+    except sqlite3.Error as error:
+        error_text = "Ошибка при работе с SQLite ", error
+        print(error_text)
     cursor.close()
 
 
@@ -85,25 +116,16 @@ def linking_nuke(id_nuke):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
     try:
-        link = cursor.execute(f"""SELECT video.name FROM linking, nuke, video 
+        all_videos_on_nuke = cursor.execute(f"""SELECT video.name FROM linking, nuke, video
         where linking.id_nuke=nuke.id and linking.id_video=video.id and linking.id_nuke='{id_nuke}'""").fetchall()
-        #link = cursor.execute(f"""SELECT nuke.name, nuke.ip, video.name FROM linking, nuke, video
-        #where linking.id_nuke=nuke.id and linking.id_video=video.id and linking.id_nuke='{id_nuke}'""").fetchall()
-        return link
+        video_on_nuke = []
+        for video in all_videos_on_nuke:
+            video_on_nuke.append(video[0])
+        print(video_on_nuke)
+        return video_on_nuke
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
         print(error_text)
-    conn.commit()
-    cursor.close()
-
-
-def add_video_nuke(nuke_name):
-    conn = sqlite3.connect('base.sqlite3')
-    cursor = conn.cursor()
-    nuke_id = cursor.execute("""SELECT id FROM nuke where name=?""", (nuke_name,)).fetchall()
-    for x in nuke_id:
-        nuke_real_id = x[0]
-    #cursor.execute(f"ALTER TABLE video ADD COLUMN '{str(nuke_real_id)}' INTEGER DEFAULT 0")
     conn.commit()
     cursor.close()
 
@@ -117,12 +139,29 @@ def all_nukes():
         id_nuke = item[0]
         name = item[1]
         ip = item[2]
+        comment = item[3]
         #print(id_nuke, name, ip)
         #print(f"SELECT * from video where {str(id_nuke)}=1")
-        videos = select_nuke(id_nuke)
-        nuke[item[1]] = videos
-    print(nuke)
+        #videos = select_nuke(id_nuke)
+        #nuke[item[1]] = videos
+        nuke[name] = {'ip': ip, 'id_nuke': id_nuke, 'comment': comment}
     return nuke
+
+
+def all_videos():
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    try:
+        nukes = cursor.execute(f'SELECT * from video').fetchall()
+        nuke = {}
+        for item in nukes:
+            id_video = item[0]
+            name = item[1]
+            nuke[name] = {'name': name, 'id_video': id_video}
+        return nuke
+    except sqlite3.Error as error:
+        error_text = "Ошибка при работе с SQLite ", error
+        print(error_text)
 
 
 def select_nuke(id):
@@ -134,11 +173,32 @@ def select_nuke(id):
     for video in video_4_nuke:
         videos.append(video[0])
     return videos
-    #nukes = cursor.execute(f'SELECT id from nuke')
-    #for nuke in nukes:
-    #    videos = []
-    #    video_4_nuke = cursor.execute(f'SELECT name FROM video where "{nuke[0]}" = 1').fetchall()
-    #    print(nuke[0])
-    #    for video in video_4_nuke:
-    #        videos.append(video[0])
-    #    return videos
+
+
+def all_video_on_nuke(id_nuke):
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    try:
+        all_videos_on_nuke = cursor.execute(f"""SELECT video.id FROM linking, nuke, video
+        where linking.id_nuke=nuke.id and linking.id_video=video.id and linking.id_nuke='{id_nuke}'""").fetchall()
+        video_on_nuke = []
+        for video in all_videos_on_nuke:
+            video_on_nuke.append(str(video[0]))
+        return video_on_nuke
+    except sqlite3.Error as error:
+        error_text = "Ошибка при работе с SQLite ", error
+        print(error_text)
+    conn.commit()
+    cursor.close()
+
+
+def sql_ip_nuke(id):
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    try:
+        ip_nuke = cursor.execute(f'SELECT ip FROM nuke WHERE id="{id}"').fetchall()
+        return ip_nuke[0]
+    except sqlite3.Error as error:
+        error_text = "Ошибка при работе с SQLite ", error
+        print(error_text)
+
