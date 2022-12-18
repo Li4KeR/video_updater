@@ -1,12 +1,13 @@
 from flask import Flask, render_template, url_for, request, redirect
 import os
 from datetime import datetime
-
-from logic import print_title
 from sql_logic import check_sql, add_nuke, add_video, all_videos, all_nukes, linking_nuke, name_nuke, \
     all_video_on_nuke, create_link_video_and_nuke, delete_link_video_and_nuke, sql_ip_nuke
 from logic import compare_lists, send_data, ping_nuke
+import logging
 
+
+logging.basicConfig(filename='app.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 file_path = f"\\\\192.168.100.92\\public\\video\\all"
 app = Flask(__name__)
@@ -25,14 +26,32 @@ def about(id):
     name = name_nuke(id)[0]
     if request.method == 'POST':
         response_data = request.form['index']
+        # button ping
         if response_data == f'Ping_{id}':
-            # ip = sql_ip_nuke(id)
-            # print(ip)
-            # if ping_nuke(ip):
+            ip = sql_ip_nuke(id)
+            print(ip)
+            if ping_nuke(ip[0]):
                 return render_template("about.html", ping=True, id=id, name=name)
-
-        print(response_data)
-        return redirect('/')
+            else:
+                return render_template("about.html", ping=False, id=id, name=name)
+        # button play video
+        elif response_data == f'PlayVideo_{id}':
+            print(f'PlayVideo_{id}')
+            return render_template("about.html", play="play", id=id, name=name)
+        # button pause video
+        elif response_data == f'PauseVideo_{id}':
+            print(f'PauseVideo_{id}')
+            return render_template("about.html", pause="pause", id=id, name=name)
+        # button restart video
+        elif response_data == f'Restart_{id}':
+            print(f'Restart_{id}')
+            return render_template("about.html", pause="pause", id=id, name=name)
+        # button check playlist
+        elif response_data == f'CheckPlaylist_{id}':
+            print(f'CheckPlaylist_{id}')
+            return render_template("about.html", checkplaylist='checkplaylist', id=id, name=name)
+        else:
+            return redirect('/')
     if check_sql():
         videos = linking_nuke(id)
     else:
@@ -47,6 +66,7 @@ def edit(id):
         video_on_nuke = all_video_on_nuke(id)
         markers.sort()
         video_on_nuke.sort()
+        # если список маркеров совападает со списком видео на нюке
         if markers == video_on_nuke:
             print('true')
         else:
@@ -147,14 +167,6 @@ def ping(id):
     # restart_nuke(id)
     job = 'restart_nuke'
     return redirect('/')
-
-
-@app.route('/test/<id>')
-def test(id):
-    nukes = linking_nuke(id)
-    return render_template("index.html", nukes=nukes)
-    # nukes = linking_nuke(41)
-    # return f'test'
 
 
 @app.route('/user/<string:name>/<int:id>')  # для изминения урла

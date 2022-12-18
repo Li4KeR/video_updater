@@ -2,25 +2,29 @@ import sqlite3
 from datetime import datetime
 
 
+# проверяем есть ли бд, таблицы и тп
 def check_sql():
     try:
         conn = sqlite3.connect('base.sqlite3')
         cursor = conn.cursor()
+        # таблица для видео
         cursor.execute("""CREATE TABLE IF NOT EXISTS video(
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL UNIQUE,
-                    ftp_path TEXT NOT NULL UNIQUE);
+                    full_name TEXT);
                     """)
-
+        # таблица для нюков
         cursor.execute("""CREATE TABLE IF NOT EXISTS nuke(
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL UNIQUE,
-                    ip TEXT NOT NULL UNIQUE);
+                    ip TEXT NOT NULL UNIQUE;
+                    comment TEXT);
                     """)
+        # таблица для ассоциации видео на нюках
         cursor.execute("""CREATE TABLE IF NOT EXISTS linking(
                     id INTEGER PRIMARY KEY,
-                    id_nuke  INTEGER REFERENCES nuke (id),
-                    id_video INTEGER REFERENCES video (id) );
+                    id_nuke  INTEGER REFERENCES nuke (id) ON DELETE CASCADE,
+                    id_video INTEGER REFERENCES video (id) ON DELETE CASCADE);
                     """)
         conn.commit()
         cursor.close()
@@ -33,29 +37,32 @@ def check_sql():
         return False
 
 
+# добавить новый нюк в бд (стр. create_nuke)
 def add_nuke(nuke_name, nuke_ip, comment):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
     try:
         cursor.execute(f'INSERT INTO nuke(name, ip, comment) VALUES("{nuke_name}", "{nuke_ip}", "{comment}")')
+        conn.commit()
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
         print(error_text)
-    conn.commit()
     cursor.close()
 
 
+# добавляем новое видео в бд (стр. create_video)
 def add_video(name, full_name):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
     try:
         cursor.execute(f'INSERT INTO video(name, full_name) VALUES("{name}", "{full_name}")')
+        conn.commit()
     except sqlite3.Error as error:
         print(error)
-    conn.commit()
     cursor.close()
 
 
+# получениt имени нюка по айди (стр edit, about)
 def name_nuke(id):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
@@ -64,10 +71,10 @@ def name_nuke(id):
         return name[0]
     except sqlite3.Error as error:
         print(error)
-    conn.commit()
     cursor.close()
 
 
+# создание ассоциации видео и нюка (стр. edit)
 def create_link_video_and_nuke(id_nuke, id_video):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
@@ -84,6 +91,7 @@ def create_link_video_and_nuke(id_nuke, id_video):
     cursor.close()
 
 
+# удаление ассоциации нюка и видео (стр. edit)
 def delete_link_video_and_nuke(id_nuke, id_video):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
@@ -100,6 +108,7 @@ def delete_link_video_and_nuke(id_nuke, id_video):
     cursor.close()
 
 
+# получение ассоциации, НЕ ИСПОЛЬЗУЕТСЯ, ВОЗМОЖНО УДАЛИТЬ
 def all_linking():
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
@@ -108,10 +117,10 @@ def all_linking():
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
         print(error_text)
-    conn.commit()
     cursor.close()
 
 
+# получение всех видео в ассоциациях с нюком (стр about, edit)
 def linking_nuke(id_nuke):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
@@ -126,28 +135,30 @@ def linking_nuke(id_nuke):
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
         print(error_text)
-    conn.commit()
     cursor.close()
 
 
+# получение всех нюков (стр. index)
 def all_nukes():
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
-    nukes = cursor.execute(f'SELECT * from nuke').fetchall()
-    nuke = {}
-    for item in nukes:
-        id_nuke = item[0]
-        name = item[1]
-        ip = item[2]
-        comment = item[3]
-        #print(id_nuke, name, ip)
-        #print(f"SELECT * from video where {str(id_nuke)}=1")
-        #videos = select_nuke(id_nuke)
-        #nuke[item[1]] = videos
-        nuke[name] = {'ip': ip, 'id_nuke': id_nuke, 'comment': comment}
-    return nuke
+    try:
+        nukes = cursor.execute(f'SELECT * from nuke').fetchall()
+        nuke = {}
+        for item in nukes:
+            id_nuke = item[0]
+            name = item[1]
+            ip = item[2]
+            comment = item[3]
+            nuke[name] = {'ip': ip, 'id_nuke': id_nuke, 'comment': comment}
+        return nuke
+    except sqlite3.Error as error:
+        error_text = "Ошибка при работе с SQLite ", error
+        print(error_text)
+    cursor.close()
 
 
+# получение всех видео (стр. edit)
 def all_videos():
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
@@ -164,6 +175,7 @@ def all_videos():
         print(error_text)
 
 
+# получение названия видео. НЕ ИСПОЛЬЗУЕТСЯ, ВОЗМОЖНО УДАЛИТЬ
 def select_nuke(id):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
@@ -175,6 +187,7 @@ def select_nuke(id):
     return videos
 
 
+# получение всех id видео из ассоциаций для нюка (стр. edit)
 def all_video_on_nuke(id_nuke):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
@@ -188,10 +201,10 @@ def all_video_on_nuke(id_nuke):
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
         print(error_text)
-    conn.commit()
     cursor.close()
 
 
+# получение ip нюка для кнопки ping
 def sql_ip_nuke(id):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
@@ -201,4 +214,5 @@ def sql_ip_nuke(id):
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
         print(error_text)
+    cursor.close()
 

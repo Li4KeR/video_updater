@@ -2,6 +2,11 @@ from base64 import encode
 import socket
 import os
 import shutil
+import logging
+
+
+logging.basicConfig(filename='app.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+
 
 """ Переменные"""
 """ /-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/ """
@@ -26,23 +31,20 @@ def check_video_tv(data):
 
 def download_video_TV(data):
     try:
-        feed_back = f'DownloadVideo {data} на хосте {my_ip} - OK'
-        print(f'Starting download video {data}')
+        print(f'Начало загрузки файла {data}')
         shutil.copy2(f'{file_path}\\{data}', f'{path_video_TV}')
-        print(feed_back)
-        return feed_back
-    except:
-        return f'Error download to ftp: {data}'
+        return f'Загрузка {data} на хосте: {my_ip} - OK'
+    except shutil.Error as err:
+        return f'Ошибка загрузки файла: {data} на хосте: {my_ip}\n{err}'
 
 
 def delete_video_TV(data):
     try:
         print(f'Starting delete {data} на хосте {my_ip}')
         os.remove(f'{path_video_TV}\\{data}')
-        feed_back = f'DeleteVideo {data} на хосте {my_ip}- OK'
-        return feed_back
+        return f'Удаление {data} на хосте {my_ip}- OK'
     except:
-        return f'Error delete on ftp: {data}'
+        return f'Ошибка удаление файла: {data} на хосте: {my_ip}'
 
 
 def parse_video(data):  # for what?!

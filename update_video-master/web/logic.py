@@ -2,6 +2,7 @@ import os
 import socket
 
 
+# сравнение 2х списков, вернуть итемы, которые только в 1 списке. В БУДУЩЕМ ПЕРЕПИСАТЬ!
 def compare_lists(list_1, list2):
     cache_list = []
     for item in list_1:
@@ -10,13 +11,8 @@ def compare_lists(list_1, list2):
     return cache_list
 
 
-def print_title(title, intro):
-    print(title, intro)
-
-
 def ping_nuke(ip):
-    response = os.popen(f"ping {ip} 1").read()
-    #response = os.system(f"ping -c 1 {ip}")
+    response = os.system(f"ping -n 1 {ip}")
     print(response)
     if response == 0:
         return True
@@ -26,6 +22,14 @@ def download():
     pass
 
 
+
+""" сокет для связи с нюком. передается в формате {КОМАНДА}_____{ПЕРЕМЕННЫЕ}
+        СПИСОК КОМАНД:
+            CheckOldVideo
+            DownloadVideo_____{имя файла} - загрузить файла на нюк с шары. 
+            DeleteVideo_____{имя файла} - удалить файл на нюке.
+            ParseVideo
+ """
 def send_data(ip, send):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((ip, 55000))
