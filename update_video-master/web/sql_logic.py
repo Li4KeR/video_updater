@@ -17,7 +17,7 @@ def check_sql():
         cursor.execute("""CREATE TABLE IF NOT EXISTS nuke(
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL UNIQUE,
-                    ip TEXT NOT NULL UNIQUE;
+                    ip TEXT NOT NULL UNIQUE,
                     comment TEXT);
                     """)
         # таблица для ассоциации видео на нюках
@@ -67,7 +67,7 @@ def name_nuke(id):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
     try:
-        name = cursor.execute(f'SELECT name FROM nuke where id="{id}"').fetchall()
+        name = cursor.execute(f'SELECT name FROM nuke where id="{id}"').fetchall()[0]
         return name[0]
     except sqlite3.Error as error:
         print(error)
@@ -124,11 +124,13 @@ def all_linking():
 def linking_nuke(id_nuke):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
+    print(id_nuke)
     try:
         all_videos_on_nuke = cursor.execute(f"""SELECT video.name FROM linking, nuke, video
         where linking.id_nuke=nuke.id and linking.id_video=video.id and linking.id_nuke='{id_nuke}'""").fetchall()
         video_on_nuke = []
         for video in all_videos_on_nuke:
+            print(video)
             video_on_nuke.append(video[0])
         print(video_on_nuke)
         return video_on_nuke

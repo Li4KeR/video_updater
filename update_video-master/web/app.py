@@ -4,10 +4,7 @@ from datetime import datetime
 from sql_logic import check_sql, add_nuke, add_video, all_videos, all_nukes, linking_nuke, name_nuke, \
     all_video_on_nuke, create_link_video_and_nuke, delete_link_video_and_nuke, sql_ip_nuke
 from logic import compare_lists, send_data, ping_nuke
-import logging
 
-
-logging.basicConfig(filename='app.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 file_path = f"\\\\192.168.100.92\\public\\video\\all"
 app = Flask(__name__)
@@ -23,7 +20,8 @@ def index():
 
 @app.route('/about/<id>', methods=['POST', 'GET'])
 def about(id):
-    name = name_nuke(id)[0]
+    name = name_nuke(id)
+    print(name)
     if request.method == 'POST':
         response_data = request.form['index']
         # button ping
@@ -52,10 +50,11 @@ def about(id):
             return render_template("about.html", checkplaylist='checkplaylist', id=id, name=name)
         else:
             return redirect('/')
-    if check_sql():
+    elif request.method == 'GET':
+        check_sql()
         videos = linking_nuke(id)
     else:
-        return "error bd"
+        return 'ERROR BD'
     return render_template("about.html", videos=videos, id=id, name=name)
 
 
@@ -88,7 +87,7 @@ def edit(id):
     else:
         all_video = all_videos()
         videos = linking_nuke(id)
-        name = name_nuke(id)[0]
+        name = name_nuke(id)
         return render_template("edit.html", id=id, all_video=all_video, videos=videos, name=name)
 
 
