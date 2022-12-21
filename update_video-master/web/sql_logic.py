@@ -99,8 +99,11 @@ def delete_link_video_and_nuke(id_nuke, id_video):
         cursor.execute(f'DELETE FROM linking WHERE id_nuke="{id_nuke}" AND id_video="{id_video}"')
         conn.commit()
         ip_nuke = cursor.execute(f'SELECT ip FROM nuke where id="{id_nuke}"').fetchall()[0]
+        # print(ip_nuke)
         video_name = cursor.execute(f'SELECT name FROM video where id="{id_video}"').fetchall()[0]
+        # print(video_name)
         full_name = cursor.execute(f'SELECT full_name FROM video where id="{id_video}"').fetchall()[0]
+        # print(full_name)
         return ip_nuke[0], video_name[0], full_name[0]
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
@@ -165,13 +168,8 @@ def all_videos():
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
     try:
-        nukes = cursor.execute(f'SELECT * from video').fetchall()
-        nuke = {}
-        for item in nukes:
-            id_video = item[0]
-            name = item[1]
-            nuke[name] = {'name': name, 'id_video': id_video}
-        return nuke
+        videos = cursor.execute(f'SELECT * from video').fetchall()
+        return videos
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
         print(error_text)
@@ -206,6 +204,22 @@ def all_video_on_nuke(id_nuke):
     cursor.close()
 
 
+# получение всех id видео из ассоциаций для нюка (стр. edit)
+def sql_all_video_on_nuke(id_nuke):
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    try:
+        all_videos_on_nuke = cursor.execute(f"""SELECT video.full_name FROM linking, nuke, video
+        where linking.id_nuke=nuke.id and linking.id_video=video.id and linking.id_nuke='{id_nuke}'""").fetchall()
+        video_on_nuke = []
+        for video in all_videos_on_nuke:
+            video_on_nuke.append(str(video[0]))
+        return video_on_nuke
+    except sqlite3.Error as error:
+        error_text = "Ошибка при работе с SQLite ", error
+        print(error_text)
+    cursor.close()
+
 # получение ip нюка для кнопки ping
 def sql_ip_nuke(id):
     conn = sqlite3.connect('base.sqlite3')
@@ -218,3 +232,17 @@ def sql_ip_nuke(id):
         print(error_text)
     cursor.close()
 
+
+def sql_ip_from_name_video(full_name):
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    id_video = cursor.execute(f'SELECT id FROM video WHERE full_name="{full_name}"').fetchall()[0]
+    return id_video[0]
+
+
+def sql_sync_video(name_video):
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    cursor.execute(f'INSERT INTO video(name, full_name) VALUES("{name_video}", "{name_video}")')
+    conn.commit()
+    cursor.close()

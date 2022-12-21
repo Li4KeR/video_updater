@@ -10,7 +10,18 @@ About
     <form method="post" enctype="multipart/form-data">
         <input type="text" name="name"  id="name" placeholder="Имя" class="form-control"><br>
         <input type="file" name="file"><br><br>
-        <input type="submit" class="btn btn-success" value="Отправить"><br>
+        <input type="submit" class="btn btn-success" name="send" value="Отправить"><br><br>
+
     </form>
+
+        {% if status == True%}
+        <div class="block_status">
+            <p>Синхронизация прошла успешно</p>
+        </div>
+        {% else %}
+        <form method="post">
+            <input type="submit" class="btn btn-dark" name="send" value="Синхронизировать видео">
+        </form>
+        {% endif %}
 </div>
 {% endblock %}
