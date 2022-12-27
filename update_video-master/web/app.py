@@ -1,31 +1,90 @@
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, url_for, request, redirect, jsonify
 import os
 from datetime import datetime
-from sql_logic import check_sql, add_nuke, add_video, all_videos, all_nukes, linking_nuke, name_nuke, \
-    all_video_on_nuke, create_link_video_and_nuke, delete_link_video_and_nuke, sql_ip_nuke, sql_all_video_on_nuke, \
-    sql_ip_from_name_video, sql_sync_video
+from sql_logic import *
 from logic import compare_lists, send_data, ping_nuke
 
-
 """ переменные """
-file_path = f"\\\\192.168.100.92\\public\\video\\all"
+path_all_video = r"\\192.168.100.92\public\video\all"
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = file_path
-path_all_video = f"\\\\192.168.100.92\\public\\video\\all"
+app.config['UPLOAD_FOLDER'] = path_all_video
+
+
+class Nuke:
+    def __init__(self, id_nuke, ip, name, comment):
+        self.id = id_nuke
+        self.ip = ip
+        self.name = name
+        self.comment = comment
+        self.videos = sql_get_all_video_on_nuke(id_nuke)
+
+    def update_video(self, markers):
+        for mark in markers:
+            if mark in self.videos:
+                pass
+
+    def add_video(self):
+        pass
+
+    def delete_video(self):
+        pass
+
+    def print_info(self):
+        print(f"{self.name}: {self.videos}" )
 
 
 """ главная страничка """
-@app.route('/')
+
+
+@app.route('/', methods=['POST', 'GET'])
 @app.route('/home')
 def index():
-    nukes = all_nukes()
-    return render_template("index.html", nukes=nukes)
+    # all_videos = sql_all_test_video()
+    all_videos = sql_get_all_videos()
+    # print(all_videos)
+    nukes = sql_get_all_nukes()  # возвращает словарь всех нюков.
+    # name{'ip_nuke': ip, 'name': name, 'id_nuke': id_nuke, 'comment': comment}
+    all_nukes = []
+    for nuke in nukes:
+        nuke = Nuke(nukes.get(nuke).get('id_nuke'), nukes.get(nuke).get('ip_nuke'), nukes.get(nuke).get('name'),
+                    nukes.get(nuke).get('comment'))
+        # nuke.print_info()
+        all_nukes.append(nuke)
+    # print(all_nukes)
+    #print(all_videos)
+
+    if request.method == 'POST':
+        # print(request.json)
+        test = request.headers
+        print(test)
+        markers = request.form.getlist("check_box")
+        # print(test)
+        # nuke_resp = request.form['index']
+        # for nuke in all_nukes:
+        #     all_video_on_nuke = []
+        #     for video in nuke.videos:
+        #         all_video_on_nuke.append(video[0])
+        #         if str(nuke_resp) == str(nuke.id):
+        #             if str(video[0]) not in markers:
+        #                 print(f"на нюке, но нет в марке {video[0]}")
+        #     if str(nuke_resp) == str(nuke.id):
+        #         for video in markers:
+        #             if int(video) not in all_video_on_nuke:
+        #                 print(f"в марке, но нет на нюке {int(video)}")
+        # test_dict = { "nuke": nuke_resp, "markers": markers}
+        # return jsonify(test_dict)
+        # return render_template("index.html", test_dict=test_dict)
+        return render_template("index.html", nukes=nukes, all_videos=all_videos, all_nukes=all_nukes)
+    else:
+        return render_template("index.html", nukes=nukes, all_videos=all_videos, all_nukes=all_nukes)
 
 
 """ страничка /about """
+
+
 @app.route('/about/<id>', methods=['POST', 'GET'])
 def about(id):
-    name = name_nuke(id)
+    name = sql_get_name_nuke(id)
     ip_nuke = sql_ip_nuke(id)[0]
     if request.method == 'POST':
         response_data = request.form['index']
@@ -53,38 +112,44 @@ def about(id):
         elif response_data == f'CheckPlaylist_{id}':
             print(f'CheckPlaylist_{id}')
             sql_video_on_nuke = sql_all_video_on_nuke(id)
-            sql_video_on_nuke.sort() # 2 лист
-            video_on_hard_nuke = send_data(ip_nuke, f"CheckOldVideo_____").split('____') # 1 лист
+            sql_video_on_nuke.sort()  # 2 лист
+            video_on_hard_nuke = send_data(ip_nuke, f"CheckOldVideo_____").split('____')  # 1 лист
             video_on_hard_nuke.sort()
 
+            """ ВЫВЕСТИ В ОТДЕЛЬНУЮ ФУНКЦИЮ? """
             not_in_nuke = compare_lists(sql_video_on_nuke, video_on_hard_nuke)
             not_in_mark = compare_lists(video_on_hard_nuke, sql_video_on_nuke)
 
             for item in not_in_nuke:  # если видео нет на нюке, но помечено маркером
-                id_video = sql_ip_from_name_video(item)
+                id_video = sql_id_from_name_video(item)
                 print(f'Добавляем на {id} видео {item}')
-                ip_nuke, video_name, full_name = create_link_video_and_nuke(id, id_video)
+                ip_nuke, video_name, full_name = sql_create_link_video_and_nuke(id, id_video)
                 print(f'Добавляем на {ip_nuke} видео {video_name} с тру именем {full_name}')
                 send_data(ip_nuke, f'DownloadVideo_____{full_name}')
                 """ Передача айди нюка и айди видео, отправить команду для скачивания видео и добавления в плейлист """
             for item in not_in_mark:  # если видео есть на нюке, но не помечено маркером
-                id_video = sql_ip_from_name_video(item)
+                id_video = sql_id_from_name_video(item)
                 print(f'Удаляем с {id} видео {id_video}')
-                ip_nuke, video_name, full_name = delete_link_video_and_nuke(id, id_video)
+                ip_nuke, video_name, full_name = sql_delete_link_video_and_nuke(id, id_video)
                 print(ip_nuke)
                 print(full_name)
                 send_data(ip_nuke, f'DeleteVideo_____{full_name}')
                 """ передача айди нюка и айди видео, отправить на нюк команду удаления видео """
 
-            #print(f'В скуле: {not_in_nuke}\nНа харде: {not_in_mark}')
+            # print(f'В скуле: {not_in_nuke}\nНа харде: {not_in_mark}')
             # print(video_on_hard_nuke)
-            #download_and_delete_video_on_nuke(sql_video_on_nuke, video_on_hard_nuke, id)
+            # download_and_delete_video_on_nuke(sql_video_on_nuke, video_on_hard_nuke, id)
             return render_template("about.html", checkplaylist='checkplaylist', id=id, name=name)
         else:
             return redirect('/')
     elif request.method == 'GET':
-        check_sql()
-        videos = linking_nuke(id)
+        sql_check_sql()
+        videos = sql_get_all_video_on_nuke(id)
+        print(videos)
+        if ping_nuke(ip_nuke):
+            return render_template("about.html", videos=videos, ping=True, id=id, name=name)
+        else:
+            return render_template("about.html", videos=videos, ping=False, id=id, name=name)
     else:
         return 'ERROR BD'
     return render_template("about.html", videos=videos, id=id, name=name)
@@ -95,37 +160,38 @@ def about(id):
 def edit(id):
     if request.method == 'POST':
         markers = request.form.getlist("check_box")
-        video_on_nuke = all_video_on_nuke(id)
+        video_on_nuke = sql_all_video_on_nuke(id)
         markers.sort()
         video_on_nuke.sort()
         # если список маркеров совападает со списком видео на нюке
         if markers == video_on_nuke:
             print('true')
         else:
+            """ ВЫВЕСТИ В ОТДЕЛЬНУЮ ФУНКЦИЮ? """
             not_in_nuke = compare_lists(markers, video_on_nuke)
             not_in_mark = compare_lists(video_on_nuke, markers)
-            for item in not_in_nuke: # если видео нет на нюке, но помечено маркером
+            for item in not_in_nuke:  # если видео нет на нюке, но помечено маркером
                 # print(f'Добавляем на {id} видео {item}')
-                ip_nuke, video_name, full_name = create_link_video_and_nuke(id, item)
+                ip_nuke, video_name, full_name = sql_create_link_video_and_nuke(id, item)
                 print(f'Добавляем на {ip_nuke} видео {video_name} с тру именем {full_name}')
                 send_data(ip_nuke, f'DownloadVideo_____{full_name}')
                 """ Передача айди нюка и айди видео, отправить команду для скачивания видео и добавления в плейлист """
-            for item in not_in_mark: # если видео есть на нюке, но не помечено маркером
+            for item in not_in_mark:  # если видео есть на нюке, но не помечено маркером
                 print(f'Удаляем с {id} видео {item}')
-                ip_nuke, video_name, full_name = delete_link_video_and_nuke(id, item)
+                ip_nuke, video_name, full_name = sql_delete_link_video_and_nuke(id, item)
                 test = f'DeleteVideo_____{full_name}'
                 send_data(ip_nuke, test)
                 """ передача айди нюка и айди видео, отправить на нюк команду удаления видео """
         return redirect('/')
     else:
-        all_video = all_videos()
+        all_video = sql_get_all_videos()
         nuke = {}
         for item in all_video:
             id_video = item[0]
             name = item[1]
             nuke[name] = {'name': name, 'id_video': id_video}
-        videos = linking_nuke(id)
-        name = name_nuke(id)
+        videos = sql_get_all_video_on_nuke(id)
+        name = sql_get_name_nuke(id)
         return render_template("edit.html", id=id, all_video=nuke, videos=videos, name=name)
 
 
@@ -136,11 +202,9 @@ def create_nuke():
         name = request.form['name']
         ip = request.form['ip']
         comment = request.form['comment']
-        print(comment)
         if comment == '':
             comment = 'Нет описания'
-        if check_sql():
-            add_nuke(name, ip, comment)
+        sql_add_nuke(name, ip, comment)
         return redirect('/')
     else:
         return render_template('create_nuke.html')
@@ -155,15 +219,12 @@ def create_video():
             name = request.form['name']
             file = request.files['file']
             full_name = file.filename
-            print(os.path.join(file_path))
-            print(file_path)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-            if check_sql():
-                add_video(name, full_name)
+            sql_add_video(name, full_name)
             return render_template('seccuss.html', name=file.filename)
         # синхронизация видосов
         else:
-            all_video = all_videos()
+            all_video = sql_get_all_videos()
             videos_sql = []
             for row in all_video:
                 videos_sql.append(row[2])

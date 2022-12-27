@@ -1,6 +1,5 @@
 import os
 import socket
-from sql_logic import create_link_video_and_nuke, delete_link_video_and_nuke
 
 
 # сравнение 2х списков, вернуть итемы, которые только в 1 списке. В БУДУЩЕМ ПЕРЕПИСАТЬ!

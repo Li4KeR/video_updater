@@ -10,32 +10,123 @@ StoneHedge Video
     <h1 class="display-4 fw-normal">Телевизоры</h1>
   </div>
 <!-- Блок переговорок -->
+
+<!--<div class="row row-cols-1 row-cols-md-3 mb-3 text-center">-->
+<!--{% for nuke in nukes %}-->
+<!--  <div class="col">-->
+<!--      <div class="card mb-4 rounded-3 shadow-sm">-->
+<!--        <a href="/about/{{ nukes[nuke].get('id_nuke') }}">-->
+<!--        <div class="card-header py-3 text-bg-primary border-primary bg-dark">-->
+<!--          <h4 class="my-0 fw-normal">{{ nuke }}</h4>-->
+<!--          <p>{{ nukes[nuke].get('ip_nuke') }}</p>-->
+<!--        </div>-->
+<!--        </a>-->
+
+<!--        <div class="card-body">-->
+<!--          {% if nukes[nuke].get('comment') == None %}-->
+<!--            <p>Описания нет</p>-->
+<!--          {% else %}-->
+<!--          <p> {{ nukes[nuke].get('comment') }} </p>-->
+<!--&lt;!&ndash;          <ul class="list-unstyled mt-3 mb-4">&ndash;&gt;-->
+<!--          {% endif %}-->
+
+<!--&lt;!&ndash;          </ul>&ndash;&gt;-->
+<!--          <a href="/about/{{ nukes[nuke].get('id_nuke') }}" class="href">-->
+<!--            <button type="button" id="btnLoad" class="w-100 btn btn-lg btn-dark btn-primary">Управление</button>-->
+<!--          </a>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--{% endfor %}-->
+<!--  </div>-->
+
 <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
-{% for nuke in nukes %}
+{% for nuke in all_nukes %}
   <div class="col">
       <div class="card mb-4 rounded-3 shadow-sm">
+        <a href="/about/{{ nuke.id }}">
         <div class="card-header py-3 text-bg-primary border-primary bg-dark">
-          <h4 class="my-0 fw-normal">{{ nuke }}</h4>
-          <p>{{ nukes[nuke].get('ip') }}</p>
+          <h4 class="my-0 fw-normal">{{ nuke.name }}</h4>
+          <p>{{ nuke.ip }}</p>
         </div>
+        </a>
 
         <div class="card-body">
-          {% if nukes[nuke].get('comment') == None %}
+          {% if nuke.comment == None %}
             <p>Описания нет</p>
           {% else %}
-          <p> {{ nukes[nuke].get('comment') }} </p>
+          <p> {{ nuke.comment }} </p>
 <!--          <ul class="list-unstyled mt-3 mb-4">-->
           {% endif %}
 
+          <form method="POST" id="send_data" class="video_form form-example" data-method="serializeArray">
+            {% for video in all_videos %}
+
+              {% if video in nuke.videos %}
+
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="{{ video[0] }}" name="check_box" id="{{ video[0] }}" checked>
+                  <label class="form-check-label" for="{{ video[0] }}">
+                    {{ video[1] }}
+                  </label>
+                </div>
+
+              {% else %}
+
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="{{ video[0] }}" name="check_box" id="{{ video[0] }}">
+                <label class="form-check-label" for="{{ video[0] }}" style="color: red;">
+                    {{ video[1] }}
+                </label>
+              </div>
+
+              {% endif %}
+            {% endfor %}
+
+            <br>
+            <div class="form-example">
+              <input type="hidden" name="index" value="{{ nuke.id }}">
+                    <input type="submit" id="btn-send-test" class="w-100 btn btn-lg btn-dark btn-primary" value="Обновить">
+              <div id="msg">{{ test_dict }}</div>
+            </div>
+          </form>
+
+
 <!--          </ul>-->
-          <a href="/about/{{ nukes[nuke].get('id_nuke') }}" class="href">
-            <button type="button" class="w-100 btn btn-lg btn-dark btn-primary">Управление</button>
-          </a>
+<!--          <a href="/about/{{ nuke.id }}" class="href">-->
+<!--            <button type="button" id="btnLoad" class="w-100 btn btn-lg btn-dark btn-primary">Управление</button>-->
+<!--          </a>-->
         </div>
       </div>
     </div>
 {% endfor %}
   </div>
+<!--<div class="row row-cols-1 row-cols-md-3 mb-3 text-center">-->
+<!--{% for nuke in nukes %}-->
+<!--  <div class="col">-->
+<!--      <div class="card mb-4 rounded-3 shadow-sm">-->
+<!--        <div class="card-header py-3 text-bg-primary border-primary bg-dark">-->
+<!--          <h4 class="my-0 fw-normal">{{ nuke }}</h4>-->
+<!--          <p>{{ nukes[nuke].get('ip') }}</p>-->
+<!--        </div>-->
+
+<!--        <div class="card-body">-->
+<!--          {% if nukes[nuke].get('comment') == None %}-->
+<!--            <p>Описания нет</p>-->
+<!--          {% else %}-->
+<!--          <p> {{ nukes[nuke].get('comment') }} </p>-->
+<!--&lt;!&ndash;          <ul class="list-unstyled mt-3 mb-4">&ndash;&gt;-->
+<!--          {% endif %}-->
+
+<!--&lt;!&ndash;          </ul>&ndash;&gt;-->
+<!--          <a href="/about/{{ nukes[nuke].get('id_nuke') }}" class="href">-->
+<!--            <button type="button" class="w-100 btn btn-lg btn-dark btn-primary">Управление</button>-->
+<!--          </a>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--{% endfor %}-->
+<!--  </div>-->
 <!-- конец блока переговорок -->
 <!--  <h2 class="display-6 text-center mb-4">Compare plans</h2>-->
 

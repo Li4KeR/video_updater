@@ -17,8 +17,8 @@
 }
 
 .block_status p{
-    border-radius: 5px;
-    padding: 5px;
+    border-radius: 8px;
+    padding: 7px;
     margin: 5px;
 }
 
@@ -30,4 +30,19 @@
 .status_not_ok {
     background-color: red;
     color: white;
+}
+
+.list_all_video {
+    background-color: rgba(24, 24, 24, 0.9);
+    color: white;
+    max-width: 250px;
+    border-radius: 25px;
+    padding: 10px;
+    margin: 5px;
+    margin-bottom: 15px;
+}
+
+.list_all_video li {
+    list-style-type: none;
+    text-decorating: none;
 }

@@ -5,44 +5,57 @@ About
 {% endblock %}
 
 {% block content %}
-    <h1>{{ name }}</h1>
-    <div class="block_status">
-        <p style="font-weight: bold;">Статус:</p>
-        {% if ping == True%}
-        <p class="status_ok">Доступен</p>
-        {% else %}
-        <p class="status_not_ok">Не доступен</p>
-        {% endif %}
-    </div>
-    <br>
-    <div class="form_about">
+    <h1 class="text-center">{{ name }}</h1>
+        <div class="row">
+            <div class="col-5">
+                <div class="block_status">
+                    <p style="font-weight: bold;">Статус:</p>
+                    {% if ping == True%}
+                    <p class="status_ok">Доступен</p>
+                    {% else %}
+                    <p class="status_not_ok">Не доступен</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="block_video_on_nuke">
+                <h4>Видео на нюке</h4>
+                <div class="list_all_video text-center">
+                {% for row in videos %}
+                    <li>{{ row }}</li>
+                {% endfor %}
+                </div>
+            </div>
+            <div class="col-5">
+                <div class="form_about">
 
-        <form action="/about/{{ id }}" method="POST">
-            <input type="hidden" name="index" value="PlayVideo_{{ id }}">
-            <input type="submit" class="btn btn-dark" value="Play">
-        </form>
+                <form action="/about/{{ id }}" method="POST">
+                    <input type="hidden" name="index" value="PlayVideo_{{ id }}">
+                    <input type="submit" class="btn btn-dark" value="Play">
+                </form>
 
-        <form action="/about/{{ id }}" method="POST">
-            <input type="hidden" name="index" value="PauseVideo_{{ id }}">
-            <input type="submit" class="btn btn-dark" value="Pause">
-        </form>
+                <form action="/about/{{ id }}" method="POST">
+                    <input type="hidden" name="index" value="PauseVideo_{{ id }}">
+                    <input type="submit" class="btn btn-dark" value="Pause">
+                </form>
 
-        <form action="/about/{{ id }}" method="POST">
-            <input type="hidden" name="index" value="Restart_{{ id }}">
-            <input type="submit" class="btn btn-dark" value="Restart">
-        </form>
+                <form action="/about/{{ id }}" method="POST">
+                    <input type="hidden" name="index" value="Restart_{{ id }}">
+                    <input type="submit" class="btn btn-dark" value="Restart">
+                </form>
 
-        <form action="/about/{{ id }}" method="POST">
-            <input type="hidden" name="index" value="CheckPlaylist_{{ id }}">
-            <input type="submit" class="btn btn-dark" value="Check Playlist">
-        </form>
+                <form action="/about/{{ id }}" method="POST">
+                    <input type="hidden" name="index" value="CheckPlaylist_{{ id }}">
+                    <input type="submit" class="btn btn-dark" value="Check Playlist">
+                </form>
 
-        <form action="/about/{{ id }}" method="POST">
-            <input type="hidden" name="index" value="Ping_{{ id }}">
-            <input type="submit" class="btn btn-dark" value="Ping">
-        </form>
-    </div>
-    <br>
+                <form action="/about/{{ id }}" method="POST">
+                    <input type="hidden" name="index" value="Ping_{{ id }}">
+                    <input type="submit" class="btn btn-dark" value="Ping">
+                </form>
+            </div>
+            <br>
+            <a class="btn btn-dark" href="/edit/{{ id }}">Редактировать видео</a>
+        </div>
 <!--    <div class="list_all_video">-->
 <!--        <ul>-->
 <!--        {% for video in videos %}-->
@@ -50,5 +63,4 @@ About
 <!--        {% endfor %}-->
 <!--        </ul>-->
 <!--    </div>-->
-    <a class="btn btn-dark" href="/edit/{{ id }}">Редактировать видео</a>
 {% endblock %}
