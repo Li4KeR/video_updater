@@ -54,27 +54,41 @@ def index():
     #print(all_videos)
 
     if request.method == 'POST':
-        # print(request.json)
-        test = request.headers
-        print(test)
-        markers = request.form.getlist("check_box")
-        # print(test)
-        # nuke_resp = request.form['index']
-        # for nuke in all_nukes:
-        #     all_video_on_nuke = []
-        #     for video in nuke.videos:
-        #         all_video_on_nuke.append(video[0])
-        #         if str(nuke_resp) == str(nuke.id):
-        #             if str(video[0]) not in markers:
-        #                 print(f"на нюке, но нет в марке {video[0]}")
-        #     if str(nuke_resp) == str(nuke.id):
-        #         for video in markers:
-        #             if int(video) not in all_video_on_nuke:
-        #                 print(f"в марке, но нет на нюке {int(video)}")
+        test = request.values.lists()
+
+        if len(test) == 2:
+            for row in test:
+                if row[0] == 'check_box':
+                    markers = row[1]
+                else:
+                    nuke_form = row[1]
+        else:
+            nuke_form = test[0][1]
+            markers = []
+
+        print(nuke_form)
+        print(markers)
+
+        nuke_resp = nuke_form[0]
+        for nuke in all_nukes:
+            all_video_on_nuke = []
+            for video in nuke.videos:
+                all_video_on_nuke.append(video[0])
+                if str(nuke_resp) == str(nuke.id):
+                    if str(video[0]) not in markers:
+                        print(f"на нюке {nuke.id}, но нет в марке: {video[0]}")
+            if str(nuke_resp) == str(nuke.id):
+                for video in markers:
+                    if int(video) not in all_video_on_nuke:
+                        print(f"в марке, но нет на нюке {nuke.id}: {int(video)}")
         # test_dict = { "nuke": nuke_resp, "markers": markers}
+        # print(test_dict)
+        return test
+
+
         # return jsonify(test_dict)
         # return render_template("index.html", test_dict=test_dict)
-        return render_template("index.html", nukes=nukes, all_videos=all_videos, all_nukes=all_nukes)
+        #return render_template("index.html", nukes=nukes, all_videos=all_videos, all_nukes=all_nukes)
     else:
         return render_template("index.html", nukes=nukes, all_videos=all_videos, all_nukes=all_nukes)
 

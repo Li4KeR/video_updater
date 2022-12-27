@@ -59,7 +59,7 @@ StoneHedge Video
 <!--          <ul class="list-unstyled mt-3 mb-4">-->
           {% endif %}
 
-          <form method="POST" id="send_data" class="video_form form-example" data-method="serializeArray">
+          <form method="POST" id="form_{{ nuke.id }}" class="video_form form-example" data-method="serializeArray">
             {% for video in all_videos %}
 
               {% if video in nuke.videos %}
@@ -86,7 +86,8 @@ StoneHedge Video
             <br>
             <div class="form-example">
               <input type="hidden" name="index" value="{{ nuke.id }}">
-                    <input type="submit" id="btn-send-test" class="w-100 btn btn-lg btn-dark btn-primary" value="Обновить">
+                    <a class="w-100 btn btn-lg btn-dark btn-primary" onclick="send_form('form_{{ nuke.id }}')">Обновить</a>
+<!--                    <input type="submit" id="btn-send-test" class="w-100 btn btn-lg btn-dark btn-primary" value="Обновить">-->
               <div id="msg">{{ test_dict }}</div>
             </div>
           </form>
