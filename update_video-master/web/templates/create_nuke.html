@@ -6,7 +6,25 @@ About
 
 {% block content %}
 <div class="container mt-5">
-    <h1>Добавление ТВ</h1>
+    <h1>Нюки</h1>
+    <table>
+        <tr>
+            <th>Имя</th>
+            <th>IP-адрес</th>
+            <th>Описание</th>
+            <th hidden>ID</th>
+        </tr>
+        {% for nuke in all_nukes %}
+        <tr>
+            <th>{{ (all_nukes.get(nuke)).get('name') }}</th>
+            <th>{{ (all_nukes.get(nuke)).get('ip_nuke') }}</th>
+            <th>{{ (all_nukes.get(nuke)).get('comment') }}</th>
+            <th hidden>{{ (all_nukes.get(nuke)).get('id_nuke') }}</th>
+            <th><a href="#">Удалить</a></th>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
     <form method="post">
         <input type="text" name="name"  id="name" placeholder="Имя" class="form-control"><br>
         <textarea name="ip" id="name" placeholder="IP" class="form-control"></textarea><br>

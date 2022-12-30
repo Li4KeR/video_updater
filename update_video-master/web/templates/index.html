@@ -44,18 +44,21 @@ StoneHedge Video
 {% for nuke in all_nukes %}
   <div class="col">
       <div class="card mb-4 rounded-3 shadow-sm">
-        <a href="/about/{{ nuke.id }}">
-        <div class="card-header py-3 text-bg-primary border-primary bg-dark">
-          <h4 class="my-0 fw-normal">{{ nuke.name }}</h4>
-          <p>{{ nuke.ip }}</p>
-        </div>
+        <a href="/about/{{ nuke.id }}" class="header-nuke">
+          <div class="card-header py-3 text-bg-primary border-primary bg-dark">
+            <h4 class="my-0 fw-normal">{{ nuke.name }}</h4>
+            <p>{{ nuke.ip }}</p>
+          </div>
         </a>
 
-        <div class="card-body">
+        <div class="display-none block-load" id="block_for_load_form_{{ nuke.id }}">
+          <h4>Обработка запроса, подождите!</h4>
+        </div>
+        <div class="card-body" id="nuke_form_{{ nuke.id }}">
           {% if nuke.comment == None %}
             <p>Описания нет</p>
           {% else %}
-          <p> {{ nuke.comment }} </p>
+            <p> {{ nuke.comment }} </p>
 <!--          <ul class="list-unstyled mt-3 mb-4">-->
           {% endif %}
 

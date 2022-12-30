@@ -1,5 +1,4 @@
 
-
 .main_logo{
     height: 15px;
 }
@@ -44,5 +43,18 @@
 
 .list_all_video li {
     list-style-type: none;
-    text-decorating: none;
+    text-decoration: none;
 }
+
+.display-none{
+    display:None;
+}
+
+.header-nuke{
+    text-decoration: none;
+}
+
+.header-nuke a:hover{
+    background-color: white;
+}
+

@@ -6,7 +6,16 @@ About
 
 {% block content %}
 <div class="container mt-5">
-    <h1>Добавление видео</h1>
+    <h1>Видео</h1>
+    <ul>
+    {% for video in all_video %}
+        <div style="display: flex;">
+            <li>{{ video[2] }}</li>
+            <a href="#">Удалить</a>
+        </div>
+    {% endfor %}
+    </ul>
+
     <form method="post" enctype="multipart/form-data">
         <input type="text" name="name"  id="name" placeholder="Имя" class="form-control"><br>
         <input type="file" name="file"><br><br>

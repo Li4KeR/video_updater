@@ -17,17 +17,40 @@ class Nuke:
         self.name = name
         self.comment = comment
         self.videos = sql_get_all_video_on_nuke(id_nuke)
+        self.status = ''
 
     def update_video(self, markers):
         for mark in markers:
             if mark in self.videos:
                 pass
 
-    def add_video(self):
-        pass
+    def add_video(self, id_video):
+        # sql для видео по айди => добавить видео в класс => добавить\удалить видео в скуль => загрузить\удалить ftp
+        full_info_video = sql_get_info_video_from_id(id_video)
+        self.videos.append(full_info_video)
+        sql_create_link_video_and_nuke(self.id, id_video)
+        full_name_video = full_info_video[2]
+        # print(full_name_video)
+        feedback = send_data(self.ip, f"DownloadVideo_____{full_name_video}")
+        print(feedback)
+        # print(f"На нюке: {self.id} добавить видео: {id_video}")
 
-    def delete_video(self):
-        pass
+    def delete_video(self, id_video):
+        sql_delete_link_video_and_nuke(self.id, id_video)
+        full_info_video = sql_get_info_video_from_id(id_video)
+        self.videos.remove(full_info_video)
+        full_name_video = full_info_video[2]
+        # print(full_name_video)
+        feedback = send_data(self.ip, f"DeleteVideo_____{full_name_video}")
+        print(feedback)
+        # print(f"на нюке: {self.id}, удалить видео: {id_video}")
+
+    def check_connection(self):
+        feedback = send_data(self.ip, f"CheckConnections_____")
+        if feedback:
+            self.status = 'Good'
+        else:
+            self.status = "Bad"
 
     def print_info(self):
         print(f"{self.name}: {self.videos}" )
@@ -66,8 +89,8 @@ def index():
             nuke_form = test[0][1]
             markers = []
 
-        print(nuke_form)
-        print(markers)
+        # print(nuke_form)
+        # print(markers)
 
         nuke_resp = nuke_form[0]
         for nuke in all_nukes:
@@ -76,10 +99,12 @@ def index():
                 all_video_on_nuke.append(video[0])
                 if str(nuke_resp) == str(nuke.id):
                     if str(video[0]) not in markers:
+                        nuke.delete_video(video[0])
                         print(f"на нюке {nuke.id}, но нет в марке: {video[0]}")
             if str(nuke_resp) == str(nuke.id):
                 for video in markers:
                     if int(video) not in all_video_on_nuke:
+                        nuke.add_video(int(video))
                         print(f"в марке, но нет на нюке {nuke.id}: {int(video)}")
         # test_dict = { "nuke": nuke_resp, "markers": markers}
         # print(test_dict)
@@ -221,7 +246,13 @@ def create_nuke():
         sql_add_nuke(name, ip, comment)
         return redirect('/')
     else:
-        return render_template('create_nuke.html')
+        all_nukes = sql_get_all_nukes()
+        for row in all_nukes:
+            print((all_nukes.get(row)).get('ip_nuke'))
+            # cache = all_nukes.get(row)
+            # cache.get('name')
+            # print(cache.get('name'))
+        return render_template('create_nuke.html', all_nukes=all_nukes)
 
 
 # страничка добавления видео и синхронизация видео между фтп и скулем
@@ -253,7 +284,9 @@ def create_video():
                     sql_sync_video(video)
             return render_template('create_video.html', status=True)
     else:
-        return render_template('create_video.html')
+        all_video = sql_get_all_videos()
+        print(all_video)
+        return render_template('create_video.html', all_video=all_video)
 
 
 # @app.route('/seccuss/<job>')

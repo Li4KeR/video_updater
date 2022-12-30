@@ -101,6 +101,8 @@ while True:
     elif data_check == 'Stop':
         kill_vlc()
         feedback = 'VLC закрыт'
+    elif data_check == "CheckConnections":
+        feedback = True
     # elif data_check == 'CheckPlaylist':
     #     pass
     else:

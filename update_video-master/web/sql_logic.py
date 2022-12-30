@@ -267,3 +267,9 @@ def sql_get_all_video_on_nuke(id_nuke):
     WHERE video.id = linking.id_video AND linking.id_nuke={id_nuke}""").fetchall()
     return all_videos
 
+
+def sql_get_info_video_from_id(video_id):
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    info_video = cursor.execute(f"""SELECT * FROM video WHERE id={video_id}""").fetchall()
+    return info_video[0]
