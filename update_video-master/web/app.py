@@ -7,8 +7,8 @@ from logic import compare_lists, send_data, ping_nuke, get_all_nukes, check_play
 import time
 
 """ переменные """
-# path_all_video = r"\\192.168.100.92\public\video\all"
-path_all_video = r"D:\Video\test"
+path_all_video = r"\\192.168.100.92\public\video\all"
+# path_all_video = r"D:\Video\test"
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = path_all_video
 
@@ -105,11 +105,13 @@ def about(id):
         elif response_data == f'PlayVideo_{id}':
             send_data(ip_nuke, 'Play_____')
             print(f'PlayVideo_{id} на {ip_nuke}')
-            return render_template("about.html", play="play", id=id, name=name)
+            return "Видео запущено"
+            # return render_template("about.html", play="play", id=id, name=name)
         # button pause video
         elif response_data == f'PauseVideo_{id}':
             send_data(ip_nuke, 'Stop_____')
-            return render_template("about.html", pause="pause", id=id, name=name)
+            return "Видео остановлено"
+            # return render_template("about.html", pause="pause", id=id, name=name)
         # button restart video
         elif response_data == f'Restart_{id}':
             print(f'Restart_{id}')
@@ -128,7 +130,7 @@ def about(id):
             return render_template("about.html", all_videos=all_videos, all_nukes=all_nukes, ping=True, id=id,
                                    nuke=nuke, name=name)
         else:
-            return render_template("about.html", all_videos=all_videos, all_nukes=all_nukes, ping=True, id=id,
+            return render_template("about.html", all_videos=all_videos, all_nukes=all_nukes, ping=False, id=id,
                                    nuke=nuke, name=name)
 
 
@@ -179,9 +181,9 @@ def edit(id):
 def create_nuke():
     if request.method == 'POST':
         if request.form['name'].split('_')[0] == 'delete':
-            id_nuke = request.form['nuke_id'].split('_')[1]
-            sql_delete_nuke(id_nuke)
-            print(id_nuke)
+            id_nuke = request.form['name'].split('_')[1]
+            # sql_delete_nuke(id_nuke)
+            print(f"delete {id_nuke}")
 
             # sql_delete_nuke(id) write!!!!!!
 
@@ -189,6 +191,10 @@ def create_nuke():
             #     print(request.form['nuke_id'])
             #     return redirect('/')
             # else:
+            return redirect('/create_nuke')
+        elif request.form['name'].split('_')[0] == 'edit':
+            id_nuke = request.form['name'].split('_')[1]
+            print(f"edit {id_nuke}")
             return redirect('/create_nuke')
         else:
             name = request.form['name']
@@ -200,8 +206,8 @@ def create_nuke():
             return redirect('/')
     else:
         all_nukes = sql_get_all_nukes()
-        for row in all_nukes:
-            print((all_nukes.get(row)).get('ip_nuke'))
+        # for row in all_nukes:
+        #     print((all_nukes.get(row)).get('ip_nuke'))
             # cache = all_nukes.get(row)
             # cache.get('name')
             # print(cache.get('name'))

@@ -52,9 +52,14 @@
 
 .header-nuke{
     text-decoration: none;
+    padding-bottom: 5px;
 }
 
-.header-nuke a:hover{
+.header-nuke:hover{
     background-color: white;
 }
 
+.block-button {
+    display: flex;
+    justify-content: space-between;
+}

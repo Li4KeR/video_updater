@@ -1,19 +1,12 @@
 function send_form(form_id) {
     var form = $('#'+form_id);
     var msg = form.serialize();
+    var nuke = '#nuke_'+form_id;
 
-    var nuke = '#nuke_'+form_id
-//    var msg = form.serialize();
-
+    $('#block_button_player_'+form_id).toggleClass('display-none block-button');
     $('#nuke_'+form_id).addClass('display-none');
     $('#block_for_load_'+form_id).removeClass('display-none')
 
-//    $('#nuke_'+form_id).click(function(){
-//      $(this).addClass('display-none');
-//      $('#block_for_load_'+form_id).removeClass('display-none')
-//    });
-
-//    alert(form_id)
     $.ajax({
         type: 'POST',
         url: '/',
@@ -21,12 +14,33 @@ function send_form(form_id) {
         success: function(data) {
             $('#nuke_'+form_id).removeClass('display-none');
             $('#block_for_load_'+form_id).addClass('display-none');
-            $('#nuke_'+form_id).load('/ '+nuke);
-//            $('#nuke_'+form_id.load('index.html '+ '"' + nuke + '"');
-//            alert('index.html '+ '"' + nuke + '"')
+            $('#block_button_player_'+form_id).toggleClass('block-button display-none');
+            $('#div_'+form_id).load('/ '+nuke);
+            $('#block_feedback_status_'+form_id).text('Все ок');
+            alert('vse ok')
         },
         error: function(){
-            alert('Ошибка!');
+            alert(form_id);
+        }
+    });
+//    location.reload();
+}
+
+
+function send_play(nuke_id) {
+    var form = $('#'+form_id);
+    var msg = form.serialize();
+    var nuke = '#nuke_'+form_id;
+
+    $.ajax({
+        type: 'POST',
+        url: '/about/'+nuke_id,
+        data: msg,
+        success: function(data) {
+            alert('good'+nuke_id)
+        },
+        error: function(){
+            alert('not good'+nuke_id);
         }
     });
 //    location.reload();

@@ -2,10 +2,10 @@ from base64 import encode
 import socket
 import os
 import shutil
-import logging
+from datetime import datetime
 
 
-logging.basicConfig(filename='app.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+# logging.basicConfig(filename='app.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
 
 """ Переменные"""
@@ -15,8 +15,8 @@ sock.bind(('', 55000))  # связываем сокет с портом, где 
 sock.listen(30)  # указываем сколько может сокет принимать соединений
 
 path_video_TV = r"C:\video"
-# file_path = f"\\\\192.168.100.92\\public\\video\\all"
-file_path = r"D:\Video\test"
+file_path = f"\\\\192.168.100.92\\public\\video\\all"
+# file_path = r"D:\Video\test"
 console_command = "start vlc C:\\video --fullscreen --loop"
 console_kill = "taskkill /im vlc.exe"
 #console_command = "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe C:\\video --fullscreen --loop"
@@ -26,8 +26,9 @@ logfile = 'log.txt'
 
 
 def logging(log_data):
-    with open(logfile) as f:
-        f.write(log_data)
+    with open(logfile, 'a') as f:
+        date_now = datetime.now().strftime("%d.%m.%y %H:%M")
+        f.write(f"{date_now} {log_data}\n")
 
 
 def check_video_tv(data):

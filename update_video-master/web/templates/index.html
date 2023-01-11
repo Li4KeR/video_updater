@@ -47,23 +47,40 @@ StoneHedge Video
   {% for nuke in all_nukes %}
     <div class="col">
         <div class="card mb-4 rounded-3 shadow-sm">
-          <a href="/about/{{ nuke.id }}" class="header-nuke">
-            <div class="card-header py-3 text-bg-primary border-primary bg-dark">
-              <h4 class="my-0 fw-normal">{{ nuke.name }}</h4>
-              <p>{{ nuke.ip }}</p>
-            </div>
-          </a>
+            <details class="header-nuke">
+                <summary>
+                        <div class="card-header py-3 text-bg-primary border-primary bg-dark">
+                          <h4 class="my-0 fw-normal">{{ nuke.name }}</h4>
+                          <p>{{ nuke.ip }}</p>
+                        </div>
+                </summary>
+                {% if nuke.comment == None %}
+                  <p>Описания нет</p>
+                {% else %}
+                  <p> {{ nuke.comment }} </p>
+      <!--          <ul class="list-unstyled mt-3 mb-4">-->
+                {% endif %}
+            </details>
 
+          <div id="block_button_player_form_{{ nuke.id }}" class="block-button">
+                <form action="/about/{{ nuke.id }}" method="POST">
+                    <input type="hidden" name="index" value="PlayVideo_{{ nuke.id }}">
+                    <input type="submit" class="btn btn-dark" value="Play">
+                </form>
+
+                <form action="/about/{{ nuke.id }}" method="POST">
+                    <input type="hidden" name="index" value="PauseVideo_{{ nuke.id }}">
+                    <input type="submit" class="btn btn-dark" value="Pause">
+                </form>
+
+<!--            <button style="padding: 5px, 10px; color: white;" class="bg-dark">Play</button>-->
+<!--            <button style="padding: 5px, 10px; color: white;" class="bg-dark">Pause</button>-->
+          </div>
           <div class="display-none block-load" id="block_for_load_form_{{ nuke.id }}">
             <h4>Обработка запроса, подождите!</h4>
           </div>
+          <div id="div_form_{{ nuke.id }}">
           <div class="card-body" id="nuke_form_{{ nuke.id }}">
-            {% if nuke.comment == None %}
-              <p>Описания нет</p>
-            {% else %}
-              <p> {{ nuke.comment }} </p>
-  <!--          <ul class="list-unstyled mt-3 mb-4">-->
-            {% endif %}
 
             <form method="POST" id="form_{{ nuke.id }}" class="video_form form-example" data-method="serializeArray">
               {% for video in all_videos %}
@@ -104,6 +121,8 @@ StoneHedge Video
   <!--            <button type="button" id="btnLoad" class="w-100 btn btn-lg btn-dark btn-primary">Управление</button>-->
   <!--          </a>-->
           </div>
+          </div>
+            <div id="block_feedback_status_form_{{ nuke.id }}"></div>
         </div>
       </div>
   {% endfor %}

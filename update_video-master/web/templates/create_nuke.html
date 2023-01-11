@@ -11,21 +11,31 @@ About
         <tr>
             <th>Имя</th>
             <th>IP-адрес</th>
-            <th>Описание</th>
+            <th hidden>Описание</th>
             <th hidden>ID</th>
         </tr>
         {% for nuke in all_nukes %}
         <tr>
-            <th>{{ (all_nukes.get(nuke)).get('name') }}</th>
-            <th>{{ (all_nukes.get(nuke)).get('ip_nuke') }}</th>
-            <th>{{ (all_nukes.get(nuke)).get('comment') }}</th>
-            <th hidden>{{ (all_nukes.get(nuke)).get('id_nuke') }}</th>
+            <th style="padding-right: 10px;">{{ (all_nukes.get(nuke)).get('name') }}</th>
+            <th style="padding-right: 10px;">{{ (all_nukes.get(nuke)).get('ip_nuke') }}</th>
+            <th style="padding-right: 10px;" hidden>{{ (all_nukes.get(nuke)).get('comment') }}</th>
+            <th style="padding-right: 10px;" hidden>{{ (all_nukes.get(nuke)).get('id_nuke') }}</th>
 <!--            <th><a method="post"  type="submit" value="delete_{{ (all_nukes.get(nuke)).get('id_nuke') }}" href="#">Удалить</a></th>-->
-            <form method="post" >
+
+            <form method="post">
                 <th>
-                    <a type="submit" name="name" value="delete_{{ (all_nukes.get(nuke)).get('id_nuke') }}">Удалить</a>
+                    <input hidden ="text" name="name" value="edit_{{ (all_nukes.get(nuke)).get('id_nuke') }}">
+                        <input class="bg-dark" style="color: white;" type="submit" value="Редактировать"></input>
                 </th>
             </form>
+
+            <form method="post">
+                <th>
+                    <input hidden ="text" name="name" value="delete_{{ (all_nukes.get(nuke)).get('id_nuke') }}">
+                        <input style="color: white; background-color: #cb121b;" type="submit" value="Удалить"></input>
+                </th>
+            </form>
+
         </tr>
         {% endfor %}
     </table>
