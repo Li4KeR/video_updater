@@ -273,3 +273,12 @@ def sql_get_info_video_from_id(video_id):
     cursor = conn.cursor()
     info_video = cursor.execute(f"""SELECT * FROM video WHERE id={video_id}""").fetchall()
     return info_video[0]
+
+
+def sql_delete_nuke(id):
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    cursor.execute(f'DELETE FROM nuke WHERE id="{id}"')
+    conn.commit()
+    cursor.close()
+

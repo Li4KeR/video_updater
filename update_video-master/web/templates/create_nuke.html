@@ -20,14 +20,19 @@ About
             <th>{{ (all_nukes.get(nuke)).get('ip_nuke') }}</th>
             <th>{{ (all_nukes.get(nuke)).get('comment') }}</th>
             <th hidden>{{ (all_nukes.get(nuke)).get('id_nuke') }}</th>
-            <th><a href="#">Удалить</a></th>
+<!--            <th><a method="post"  type="submit" value="delete_{{ (all_nukes.get(nuke)).get('id_nuke') }}" href="#">Удалить</a></th>-->
+            <form method="post" >
+                <th>
+                    <a type="submit" name="name" value="delete_{{ (all_nukes.get(nuke)).get('id_nuke') }}">Удалить</a>
+                </th>
+            </form>
         </tr>
         {% endfor %}
     </table>
     <br>
     <form method="post">
         <input type="text" name="name"  id="name" placeholder="Имя" class="form-control"><br>
-        <textarea name="ip" id="name" placeholder="IP" class="form-control"></textarea><br>
+        <textarea name="ip" placeholder="IP" class="form-control"></textarea><br>
         <textarea name="comment" id="comment" placeholder="Коментарии" class="form-control"></textarea><br>
         <input type="submit" class="btn btn-success" value="Отправить"><br>
     </form>

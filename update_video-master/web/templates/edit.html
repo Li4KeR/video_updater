@@ -11,16 +11,16 @@ Edit
     {% for video in all_video %}
         {% if video in videos %}
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="{{ all_video[video].get('id_video') }}" name="check_box" id="{{ all_video[video].get('id_video') }}" checked>
-                <label class="form-check-label" for="{{ all_video[video].get('id_video') }}">
-                    {{ all_video[video].get('name') }}
+                <input class="form-check-input" type="checkbox" value="{{ video[0] }}" name="check_box" id="{{ video[0] }}" checked>
+                <label class="form-check-label" for="{{ video[0] }}">
+                    {{ video[1] }}
                 </label>
             </div>
         {% else %}
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="{{ all_video[video].get('id_video') }}" name="check_box" id="{{ all_video[video].get('id_video') }}">
-                <label class="form-check-label" for="{{ all_video[video].get('id_video') }}" style="color: red;">
-                    {{ all_video[video].get('name') }}
+                <input class="form-check-input" type="checkbox" value="{{ video[0] }}" name="check_box" id="{{ video[0] }}">
+                <label class="form-check-label" for="{{ video[0] }}" style="color: red;">
+                    {{ video[1] }}
                 </label>
             </div>
         {% endif %}

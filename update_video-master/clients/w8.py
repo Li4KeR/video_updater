@@ -3,7 +3,6 @@ import socket
 import os
 import shutil
 import logging
-import subprocess
 
 
 logging.basicConfig(filename='app.log', filemode='a', format='%(name)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
@@ -15,13 +14,20 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # создаем со�
 sock.bind(('', 55000))  # связываем сокет с портом, где он будет ожидать сообщения
 sock.listen(30)  # указываем сколько может сокет принимать соединений
 
-path_video_TV = "C:\\video\\"
-file_path = f"\\\\192.168.100.92\\public\\video\\all"
+path_video_TV = r"C:\video"
+# file_path = f"\\\\192.168.100.92\\public\\video\\all"
+file_path = r"D:\Video\test"
 console_command = "start vlc C:\\video --fullscreen --loop"
 console_kill = "taskkill /im vlc.exe"
 #console_command = "C:\\Program Files\\VideoLAN\\VLC\\vlc.exe C:\\video --fullscreen --loop"
 my_ip = socket.gethostbyname(socket.getfqdn())
+logfile = 'log.txt'
 """ /-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/ """
+
+
+def logging(log_data):
+    with open(logfile) as f:
+        f.write(log_data)
 
 
 def check_video_tv(data):
@@ -32,31 +38,28 @@ def check_video_tv(data):
             fb_test += f"{video}"
         else:
             fb_test += f"____{video}"
-    # print(fb_test)
-    # print(video_names)
     return fb_test
-    # if sorted(data) == sorted(video_names):
-    #     return True
-    # else:
-    #     # parse_video() ??
-    #     return video_names
 
 
 def download_video_TV(data):
     try:
-        print(f'Начало загрузки файла {data}')
+        logging(f'Начало загрузки файла {data}')
         shutil.copy2(f'{file_path}\\{data}', f'{path_video_TV}')
+        logging(f'Загрузка {data} на хосте: {my_ip} - OK')
         return f'Загрузка {data} на хосте: {my_ip} - OK'
-    except shutil.Error as err:
-        return f'Ошибка загрузки файла: {data} на хосте: {my_ip}\n{err}'
+    except shutil.Error as error:
+        logging(f'Ошибка загрузки файла: {data}\n{error}')
+        return f'Ошибка загрузки файла: {data} на хосте: {my_ip}\n{error}'
 
 
 def delete_video_TV(data):
     try:
-        print(f'Starting delete {data} на хосте {my_ip}')
+        logging(f'Начало удаления {data}')
         os.remove(f'{path_video_TV}\\{data}')
+        logging(f'Удаление {data} на хосте {my_ip}- OK')
         return f'Удаление {data} на хосте {my_ip}- OK'
-    except:
+    except os.error as error:
+        logging(f'Ошибка удаление файла: {data}\n{error}')
         return f'Ошибка удаление файла: {data} на хосте: {my_ip}'
 
 
@@ -70,22 +73,31 @@ def parse_video(data):  # for what?!
 
 
 def play_video():
-    os.system(console_command)
-    #subprocess.run(console_command)
+    try:
+        os.system(console_command)
+        logging('Запуск VLC')
+    except os.error as error:
+        logging(f'Ошибка запуска VLC\n{error}')
 
 
 def kill_vlc():
-    os.system(console_kill)
+    try:
+        os.system(console_kill)
+        logging('Остановка VLC')
+    except os.error as error:
+        logging(f'Ошмбка остановки VLC\n{error}')
 
 
 while True:
+    try:
+        os.mkdir(r'C:\video')
+    except:
+        pass
     connect, addr = sock.accept()
-    print(addr)
     bytes_data = connect.recv(1024)
     received_data = bytes_data.decode('UTF-8').split('_____')
     data_check = received_data.pop(0)
     data = received_data[0]
-    print(data)
     if data_check == 'CheckOldVideo':
         videos = check_video_tv(data)
         feedback = videos
