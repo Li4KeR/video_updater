@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 # проверяем есть ли бд, таблицы и тп
-def sql_check_sql():
+def sql_check_and_create_bd():
     try:
         conn = sqlite3.connect('base.sqlite3')
         cursor = conn.cursor()
@@ -81,10 +81,6 @@ def sql_create_link_video_and_nuke(id_nuke, id_video):
     try:
         cursor.execute(f'INSERT INTO linking(id_nuke, id_video) VALUES("{id_nuke}", "{id_video}")')
         conn.commit()
-        ip_nuke = cursor.execute(f'SELECT ip FROM nuke where id="{id_nuke}"').fetchall()[0]
-        video_name = cursor.execute(f'SELECT name FROM video where id="{id_video}"').fetchall()[0]
-        full_name = cursor.execute(f'SELECT full_name FROM video where id="{id_video}"').fetchall()[0]
-        return ip_nuke[0], video_name[0], full_name[0]
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
         print(error_text)
@@ -124,18 +120,17 @@ def sql_all_linking():
 
 
 # получение всех видео в ассоциациях с нюком (стр about, edit)
-def sql_get_all_video_on_nuke(id_nuke):
+def sql_get_all_video_name_on_nuke(id_nuke):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
-    print(id_nuke)
     try:
-        all_videos_on_nuke = cursor.execute(f"""SELECT video.name FROM linking, nuke, video
+        all_videos_on_nuke = cursor.execute(f"""SELECT video.full_name FROM linking, nuke, video
         where linking.id_nuke=nuke.id and linking.id_video=video.id and linking.id_nuke='{id_nuke}'""").fetchall()
         video_on_nuke = []
         for video in all_videos_on_nuke:
-            print(video)
+            # print(video)
             video_on_nuke.append(video[0])
-        print(video_on_nuke)
+        # print(video_on_nuke)
         return video_on_nuke
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
@@ -168,7 +163,7 @@ def sql_get_all_videos():
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
     try:
-        videos = cursor.execute(f'SELECT * from video').fetchall()
+        videos = cursor.execute(f'SELECT id, name, full_name from video').fetchall()
         return videos
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
@@ -176,15 +171,15 @@ def sql_get_all_videos():
 
 
 # получение названия видео. НЕ ИСПОЛЬЗУЕТСЯ, ВОЗМОЖНО УДАЛИТЬ
-def sql_select_nuke(id):
-    conn = sqlite3.connect('base.sqlite3')
-    cursor = conn.cursor()
-
-    videos = []
-    video_4_nuke = cursor.execute(f'SELECT name FROM video where "{id}" = 1').fetchall()
-    for video in video_4_nuke:
-        videos.append(video[0])
-    return videos
+# def sql_select_nuke(id):
+#     conn = sqlite3.connect('base.sqlite3')
+#     cursor = conn.cursor()
+#
+#     videos = []
+#     video_4_nuke = cursor.execute(f'SELECT name FROM video where "{id}" = 1').fetchall()
+#     for video in video_4_nuke:
+#         videos.append(video[0])
+#     return videos
 
 
 # получение всех id видео из ассоциаций для нюка (стр. edit)
@@ -205,20 +200,20 @@ def sql_all_video_on_nuke(id_nuke):
 
 
 # получение всех id видео из ассоциаций для нюка (стр. edit)
-def sql_all_video_on_nuke(id_nuke):
-    conn = sqlite3.connect('base.sqlite3')
-    cursor = conn.cursor()
-    try:
-        all_videos_on_nuke = cursor.execute(f"""SELECT video.full_name FROM linking, nuke, video
-        where linking.id_nuke=nuke.id and linking.id_video=video.id and linking.id_nuke='{id_nuke}'""").fetchall()
-        video_on_nuke = []
-        for video in all_videos_on_nuke:
-            video_on_nuke.append(str(video[0]))
-        return video_on_nuke
-    except sqlite3.Error as error:
-        error_text = "Ошибка при работе с SQLite ", error
-        print(error_text)
-    cursor.close()
+# def sql_all_video_on_nuke(id_nuke):
+#     conn = sqlite3.connect('base.sqlite3')
+#     cursor = conn.cursor()
+#     try:
+#         all_videos_on_nuke = cursor.execute(f"""SELECT video.full_name FROM linking, nuke, video
+#         where linking.id_nuke=nuke.id and linking.id_video=video.id and linking.id_nuke='{id_nuke}'""").fetchall()
+#         video_on_nuke = []
+#         for video in all_videos_on_nuke:
+#             video_on_nuke.append(str(video[0]))
+#         return video_on_nuke
+#     except sqlite3.Error as error:
+#         error_text = "Ошибка при работе с SQLite ", error
+#         print(error_text)
+#     cursor.close()
 
 # получение ip нюка для кнопки ping
 def sql_ip_nuke(id):
@@ -233,7 +228,7 @@ def sql_ip_nuke(id):
     cursor.close()
 
 
-# получение айди видео по имени
+# # получение айди видео по имени
 def sql_id_from_name_video(full_name):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
@@ -251,19 +246,19 @@ def sql_sync_video(name_video):
 
 
 # все видео + имена
-def sql_all_test_video():
-    conn = sqlite3.connect('base.sqlite3')
-    cursor = conn.cursor()
-    all_video = cursor.execute(f'SELECT video.id, video.name, video.full_name from video, linking WHERE video.id=linking.id_video').fetchall()
-    cursor.close()
-    return all_video
+# def sql_all_test_video():
+#     conn = sqlite3.connect('base.sqlite3')
+#     cursor = conn.cursor()
+#     all_video = cursor.execute(f'SELECT video.id, video.name, video.full_name from video, linking WHERE video.id=linking.id_video').fetchall()
+#     cursor.close()
+#     return all_video
 
 
 # список всех видео для нюка. в формате id_video, video_name, full_name
 def sql_get_all_video_on_nuke(id_nuke):
     conn = sqlite3.connect('base.sqlite3')
     cursor = conn.cursor()
-    all_videos = cursor.execute(f"""SELECT video.id, video.name, video.full_name FROM linking, video 
+    all_videos = cursor.execute(f"""SELECT video.id, video.name, video.full_name FROM linking, video
     WHERE video.id = linking.id_video AND linking.id_nuke={id_nuke}""").fetchall()
     return all_videos
 
@@ -281,4 +276,49 @@ def sql_delete_nuke(id):
     cursor.execute(f'DELETE FROM nuke WHERE id="{id}"')
     conn.commit()
     cursor.close()
+
+
+def sql_delete_video(video_name):
+    try:
+        conn = sqlite3.connect('base.sqlite3')
+        cursor = conn.cursor()
+        cursor.execute(f'DELETE FROM video WHERE full_name="{video_name}"')
+        conn.commit()
+        cursor.close()
+    except sqlite3.Error as error:
+        print(error)
+
+
+def sql_get_ip_name_fname(id_nuke, id_video):
+    try:
+        conn = sqlite3.connect('base.sqlite3')
+        cursor = conn.cursor()
+        ip_nuke = cursor.execute(f'SELECT ip FROM nuke where id="{id_nuke}"').fetchall()[0][0]
+        video_name = cursor.execute(f'SELECT name FROM video where id="{id_video}"').fetchall()[0][0]
+        full_name = cursor.execute(f'SELECT full_name FROM video where id="{id_video}"').fetchall()[0][0]
+        return ip_nuke, video_name, full_name
+    except sqlite3.Error as error:
+        print(error)
+
+
+def sql_rename_video(id_video, new_name):
+    try:
+        conn = sqlite3.connect('base.sqlite3')
+        cursor = conn.cursor()
+        cursor.execute(f'UPDATE video SET name="{new_name}" WHERE id="{id_video}"')
+        conn.commit()
+        cursor.close()
+    except sqlite3.Error as error:
+        print(error)
+
+
+def sql_edit_nuke(id_nuke, new_name, new_ip, new_comment):
+    try:
+        conn = sqlite3.connect('base.sqlite3')
+        cursor = conn.cursor()
+        cursor.execute(f'UPDATE nuke SET name="{new_name}", ip="{new_ip}", comment="{new_comment}" WHERE id="{id_nuke}"')
+        conn.commit()
+        cursor.close()
+    except sqlite3.Error as error:
+        print(error)
 

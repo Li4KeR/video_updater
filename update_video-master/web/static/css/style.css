@@ -24,11 +24,13 @@
 .status_ok {
     background-color: green;
     color: white;
+    border-radius: 25px;
 }
 
 .status_not_ok {
     background-color: red;
     color: white;
+    border-radius: 20px;
 }
 
 .list_all_video {
@@ -52,14 +54,63 @@
 
 .header-nuke{
     text-decoration: none;
-    padding-bottom: 5px;
+    margin-bottom: 10px
 }
 
 .header-nuke:hover{
     background-color: white;
 }
 
+.header-nuke p{
+    color: white;
+}
+
 .block-button {
     display: flex;
     justify-content: space-between;
+}
+
+.btn-video {
+    margin-left: 10px;
+    border-radius: 7px;
+}
+
+.btn-play{
+    max-height: 40px;
+    margin-left: 8px;
+    cursor: pointer;
+    border-radius: 100px;
+}
+
+.btn-play:hover {
+    background-color: green;
+    transition: 0.3s;
+
+}
+
+.btn-stop{
+    max-height: 40px;
+    margin-right: 8px;
+    cursor: pointer;
+    border-radius: 100px;
+}
+
+.btn-stop:hover {
+    background-color: red;
+    transition: 0.3s;
+}
+
+.block-delete-video {
+    display: flex;
+    margin: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px black solid;
+}
+
+.disabled {
+    pointer-events: none;
+}
+
+.input-nuke-form {
+    margin-bottom: 15px;
 }

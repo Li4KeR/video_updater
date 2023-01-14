@@ -2,7 +2,7 @@ from flask import Flask, render_template, url_for, request, redirect, jsonify
 import os
 from datetime import datetime
 from sql_logic import *
-from logic import compare_lists, send_data, ping_nuke, get_all_nukes, check_playlist_sql_physic
+from logic import *
 
 import time
 
@@ -18,8 +18,11 @@ app.config['UPLOAD_FOLDER'] = path_all_video
 
 @app.route('/', methods=['POST', 'GET'])
 def index():
-    sql_check_sql()
-    all_nukes = get_all_nukes()
+    sql_check_and_create_bd()
+    try:
+        all_nukes = get_all_nukes()
+    except:
+        pass
     # all_videos = sql_get_all_videos()
     # nukes = sql_get_all_nukes()  # возвращает словарь всех нюков.
     # # name{'ip_nuke': ip, 'name': name, 'id_nuke': id_nuke, 'comment': comment}
@@ -37,34 +40,38 @@ def index():
                 if row[0] == 'check_box':
                     markers = row[1]
                 else:
-                    nuke_form = row[1]
+                    nuke_id = row[1]
         else:
-            nuke_form = response_marks[0][1]
+            nuke_id = response_marks[0][1]
             markers = []
 
         # print(nuke_form)
         # print(markers)
 
-        nuke_resp = nuke_form[0]
-        print(nuke_resp)
+        nuke_response_id = nuke_id[0]
         for nuke in all_nukes:
             all_video_on_nuke = []
             video_for_delete = []
             for video in nuke.videos:
                 all_video_on_nuke.append(video[0])
-                if str(nuke_resp) == str(nuke.id):
+                if str(nuke_response_id) == str(nuke.id):
                     if str(video[0]) not in markers:
                         video_for_delete.append(video[0])
                         # print(f"Нет в марке, но есть на нюке {nuke.id}: {int(video)}")
             for vid in video_for_delete:
-                nuke.delete_video(vid)
                 print(vid)
+                nuke.delete_video(vid)
 
-            if str(nuke_resp) == str(nuke.id):
+            if str(nuke_response_id) == str(nuke.id):
                 for video in markers:
                     if int(video) not in all_video_on_nuke:
                         nuke.add_video(int(video))
-                        # print(f"в марке, но нет на нюке {nuke.id}: {int(video)}")
+
+            if str(nuke.id) == str(nuke_response_id):
+                send_data(nuke.ip, 'Stop_____')
+                send_data(nuke.ip, 'Play_____')
+
+            # print(f"в марке, но нет на нюке {nuke.id}: {int(video)}")
             # print(all_video_on_nuke)
             # print(markers)
         # test_dict = { "nuke": nuke_resp, "markers": markers}
@@ -75,127 +82,74 @@ def index():
         # return render_template("index.html", test_dict=test_dict)
         # return render_template("index.html", nukes=nukes, all_videos=all_videos, all_nukes=all_nukes)
     else:
-        all_videos = sql_get_all_videos()
-        return render_template("index.html", all_videos=all_videos, all_nukes=all_nukes)
+        all_video = sql_get_all_videos()
+        return render_template("index.html", all_videos=all_video, all_nukes=all_nukes)
 
 
 """ страничка /about """
 
 
-@app.route('/about/<id>', methods=['POST', 'GET'])
-def about(id):
-    name = sql_get_name_nuke(id)
-    ip_nuke = sql_ip_nuke(id)[0]
+@app.route('/handler/<id>', methods=['POST'])
+def handler(id):
     all_nukes = get_all_nukes()
-    all_videos = sql_get_all_videos()
 
+    # print(request.form['index'])
     for nuke_cache in all_nukes:
         if str(nuke_cache.id) == id:
             nuke = nuke_cache
 
-    if request.method == 'POST':
-        response_data = request.form['index']
-        # button ping
-        if response_data == f'Ping_{id}':
-            if ping_nuke(ip_nuke):
-                return render_template("about.html", ping=True, id=id, name=name)
-            else:
-                return render_template("about.html", ping=False, id=id, name=name)
-        # button play video
-        elif response_data == f'PlayVideo_{id}':
-            send_data(ip_nuke, 'Play_____')
-            print(f'PlayVideo_{id} на {ip_nuke}')
-            return "Видео запущено"
-            # return render_template("about.html", play="play", id=id, name=name)
-        # button pause video
-        elif response_data == f'PauseVideo_{id}':
-            send_data(ip_nuke, 'Stop_____')
-            return "Видео остановлено"
-            # return render_template("about.html", pause="pause", id=id, name=name)
-        # button restart video
-        elif response_data == f'Restart_{id}':
-            print(f'Restart_{id}')
-            return render_template("about.html", pause="pause", id=id, name=name)
-        # button check playlist
-        elif response_data == f'CheckPlaylist_{id}':
-            print(f'CheckPlaylist_{id}')
-            check_playlist_sql_physic(ip_nuke, id)
-            return render_template("about.html", checkplaylist='checkplaylist', id=id, name=name)
+    response_data = request.form['index']
+    # ping status
+    if response_data == f'Ping_{nuke.id}':
+        if ping_nuke(nuke.ip):
+            return render_template("about.html", ping=True, id=nuke.id, name=nuke.name)
         else:
-            return redirect('/')
-    elif request.method == 'GET':
-        # videos = sql_get_all_video_on_nuke(id)
-
-        if ping_nuke(ip_nuke):
-            return render_template("about.html", all_videos=all_videos, all_nukes=all_nukes, ping=True, id=id,
-                                   nuke=nuke, name=name)
-        else:
-            return render_template("about.html", all_videos=all_videos, all_nukes=all_nukes, ping=False, id=id,
-                                   nuke=nuke, name=name)
-
-
-# страничка edit
-@app.route('/edit/<id>', methods=['POST', 'GET'])
-def edit(id):
-    if request.method == 'POST':
-        markers = request.form.getlist("check_box")
-        video_on_nuke = sql_all_video_on_nuke(id)
-        markers.sort()
-        video_on_nuke.sort()
-        # если список маркеров совападает со списком видео на нюке
-        if markers == video_on_nuke:
-            print('true')
-        else:
-            """ ВЫВЕСТИ В ОТДЕЛЬНУЮ ФУНКЦИЮ? """
-            not_in_nuke = compare_lists(markers, video_on_nuke)
-            not_in_mark = compare_lists(video_on_nuke, markers)
-            for item in not_in_nuke:  # если видео нет на нюке, но помечено маркером
-                # print(f'Добавляем на {id} видео {item}')
-                ip_nuke, video_name, full_name = sql_create_link_video_and_nuke(id, item)
-                print(f'Добавляем на {ip_nuke} видео {video_name} с тру именем {full_name}')
-                send_data(ip_nuke, f'DownloadVideo_____{full_name}')
-                """ Передача айди нюка и айди видео, отправить команду для скачивания видео и добавления в плейлист """
-            for item in not_in_mark:  # если видео есть на нюке, но не помечено маркером
-                print(f'Удаляем с {id} видео {item}')
-                ip_nuke, video_name, full_name = sql_delete_link_video_and_nuke(id, item)
-                test = f'DeleteVideo_____{full_name}'
-                send_data(ip_nuke, test)
-                """ передача айди нюка и айди видео, отправить на нюк команду удаления видео """
-        return redirect('/')
+            return render_template("about.html", ping=False, id=nuke.id, name=nuke.name)
+    # button play video
+    elif response_data == f'PlayVideo_{nuke.id}':
+        send_data(nuke.ip, 'Play_____')
+        print(f'PlayVideo_{nuke.id} на {nuke.ip}')
+        return "Видео запущено"
+        # return render_template("about.html", play="play", id=id, name=name)
+    # button pause video
+    elif response_data == f'PauseVideo_{nuke.id}':
+        send_data(nuke.ip, 'Stop_____')
+        return "Видео остановлено"
+        # return render_template("about.html", pause="pause", id=id, name=name)
+    # button restart video
+    elif response_data == f'Restart_{nuke.id}':
+        print(f'Restart_{nuke.id}')
+        return render_template("about.html", pause="pause", id=nuke.id, name=nuke.name)
+    # button check playlist
+    elif response_data == f'CheckPlaylist_{nuke.id}':
+        check_playlist_sql_physic(nuke.ip, nuke.id)
+        return "Синхронизация видео"
     else:
-        all_video = sql_get_all_videos()
-        print(all_video)
-        nuke = {}
-        for item in all_video:
-            id_video = item[0]
-            name = item[1]
-            nuke[name] = {'name': name, 'id_video': id_video}
-        videos = sql_get_all_video_on_nuke(id)
-        print(videos)
-        name = sql_get_name_nuke(id)
-        return render_template("edit.html", id=id, all_video=all_video, nuke=nuke, videos=videos, name=name)
+        return redirect('/')
 
 
 # страничка добавления нюка
-@app.route('/create_nuke', methods=['POST', 'GET'])
-def create_nuke():
+@app.route('/nukes', methods=['POST', 'GET'])
+def all_nuke():
     if request.method == 'POST':
         if request.form['name'].split('_')[0] == 'delete':
             id_nuke = request.form['name'].split('_')[1]
-            # sql_delete_nuke(id_nuke)
-            print(f"delete {id_nuke}")
+            sql_delete_nuke(id_nuke)
+            return redirect('/nukes')
+        elif request.form['name'].split('_____')[0] == 'edit':
+            id_nuke = request.form['name'].split('_____')[1]
+            new_name = request.form['nuke_name']
+            new_ip = request.form['ip']
+            new_comment = request.form['comment']
 
-            # sql_delete_nuke(id) write!!!!!!
+            sql_edit_nuke(id_nuke, new_name, new_ip, new_comment)
 
-            # if request.form['nuke_id']:
-            #     print(request.form['nuke_id'])
-            #     return redirect('/')
-            # else:
-            return redirect('/create_nuke')
-        elif request.form['name'].split('_')[0] == 'edit':
+            return redirect('/nukes')
+        elif request.form['name'].split('_')[0] == 'sync':
             id_nuke = request.form['name'].split('_')[1]
-            print(f"edit {id_nuke}")
-            return redirect('/create_nuke')
+            ip_nuke = sql_ip_nuke(id_nuke)[0]
+            check_playlist_sql_physic(ip_nuke, id_nuke)
+            return 'ok'
         else:
             name = request.form['name']
             ip = request.form['ip']
@@ -203,20 +157,15 @@ def create_nuke():
             if comment == '':
                 comment = 'Нет описания'
             sql_add_nuke(name, ip, comment)
-            return redirect('/')
+            return redirect('/nukes')
     else:
         all_nukes = sql_get_all_nukes()
-        # for row in all_nukes:
-        #     print((all_nukes.get(row)).get('ip_nuke'))
-            # cache = all_nukes.get(row)
-            # cache.get('name')
-            # print(cache.get('name'))
-        return render_template('create_nuke.html', all_nukes=all_nukes)
+        return render_template('nukes.html', all_nukes=all_nukes)
 
 
 # страничка добавления видео и синхронизация видео между фтп и скулем
-@app.route('/create_video', methods=['POST', 'GET'])
-def create_video():
+@app.route('/videos', methods=['POST', 'GET'])
+def all_videos():
     if request.method == 'POST':
         # добавление видео
         if request.form['send'] == "Отправить":
@@ -225,7 +174,22 @@ def create_video():
             full_name = file.filename
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
             sql_add_video(name, full_name)
-            return render_template('seccuss.html', name=file.filename)
+            feedback_status = f"Видео {file.filename} успешно загружено!"
+            all_video = sql_get_all_videos()
+            return render_template('videos.html', all_video=all_video, status_download_video=feedback_status)
+        # переменование видео
+        elif request.form['send'].split('_____')[0] == 'rename':
+            new_name = request.form['name']
+            id_video = request.form['send'].split('_____')[1]
+            sql_rename_video(id_video, new_name)
+            all_video = sql_get_all_videos()
+            return render_template('videos.html', all_video=all_video)
+        # удаление видео
+        elif request.form['send'].split('_____')[0] == 'delete':
+            video_name = request.form['send'].split('_____')[1]
+            delete_video_from_host(video_name)
+            all_video = sql_get_all_videos()
+            return render_template('videos.html', all_video=all_video)
         # синхронизация видосов
         else:
             all_video = sql_get_all_videos()
@@ -235,68 +199,21 @@ def create_video():
             videos_on_ftp = []
             for filename in os.listdir(path=path_all_video):
                 videos_on_ftp.append(filename)
-            print(videos_sql)
-            print(videos_on_ftp)
+
             for video in videos_on_ftp:
                 if video not in videos_sql:
                     print(video)
                     sql_sync_video(video)
-            return render_template('create_video.html', status=True)
+
+            for video in videos_sql:
+                if video not in videos_on_ftp:
+                    print(video)
+                    sql_delete_video(video)
+
+            return render_template('videos.html', all_video=all_video, status=True)
     else:
         all_video = sql_get_all_videos()
-        print(all_video)
-        return render_template('create_video.html', all_video=all_video)
-
-
-# @app.route('/seccuss/<job>')
-# def feedback_job(job):
-#     return redirect('/')
-#
-#
-# @app.route('/edit/restart/<id>')
-# def restart(id):
-#     print(f'restart {id} нюк')
-#     # restart_nuke(id)
-#     job = 'restart_nuke'
-#     return redirect('/')
-#
-#
-# @app.route('/edit/pause/<id>')
-# def pause(id):
-#     print(f'pause {id} нюк')
-#     # restart_nuke(id)
-#     job = 'restart_nuke'
-#     return redirect('/')
-#
-#
-# @app.route('/edit/play/<id>')
-# def play(id):
-#     print(f'play {id} нюк')
-#     # restart_nuke(id)
-#     job = 'restart_nuke'
-#     return redirect('/')
-#
-#
-# @app.route('/edit/check_playlist/<id>')
-# def check_playlist(id):
-#     print(f'check_playlist {id} нюк')
-#     # restart_nuke(id)
-#     job = 'restart_nuke'
-#     return redirect('/')
-#
-#
-# @app.route('/edit/ping/<id>')
-# def ping(id):
-#     print(f'ping {id} нюк')
-#     # restart_nuke(id)
-#     job = 'restart_nuke'
-#     return redirect('/')
-#
-#
-# @app.route('/user/<string:name>/<int:id>')  # для изминения урла
-# def user(name, id):
-#     return f"User {name}, {str(id)}"
-#     # return render_template("user.html")
+        return render_template('videos.html', all_video=all_video)
 
 
 if __name__ == "__main__":
