@@ -132,3 +132,31 @@ function sync_video_nuke(id_nuke) {
 function send_edit_nuke(nuke_data) {
     $('#edit_nuke_'+nuke_data).toggleClass('display-none')
 }
+
+
+function check_video_nuke(id_nuke) {
+//    alert(id_nuke)
+    var form = $('#CheckNukeForm_'+id_nuke);
+    var msg = form.serialize();
+
+    $('#btnNukeCheck_'+id_nuke).addClass('disabled');
+//    alert(msg)
+//    var nuke = '#nuke_'+nuke_id;
+//    $('#btnVideoSync_'+id_nuke).addClass('display-none')
+//
+    $.ajax({
+        type: 'POST',
+        url: '/nukes',
+        data: msg,
+        success: function(data) {
+            $('#btnNukeCheck_'+id_nuke).removeClass('bg-dark');
+            $('#btnNukeCheck_'+id_nuke).addClass('btn-success');
+            $('#btnNukeCheck_'+id_nuke).text('Good');
+        },
+        error: function(){
+            $('#btnNukeCheck_'+id_nuke).text('Bad');
+        }
+    });
+//    location.reload();
+}
+

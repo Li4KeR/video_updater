@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-About
+Видео
 {% endblock %}
 
 {% block content %}
@@ -13,12 +13,12 @@ About
                     <form class="col-2" method="post">
                         <input hidden ="text" name="send" value="rename_____{{ video[0] }}___{{ video[1] }}___{{ video[2] }}">
     <!--                    <input class="bg-dark btn-video" style="color: white;" type="submit" value="Переименовать"></input>-->
-                        <a onclick="send_edit_video('{{ video[0] }}')" class="btn btn-dark btn-video" >Переименовать</a>
+                        <a onclick="send_edit_video('{{ video[0] }}')" class="btn btn-dark btn-sm btn-video" >Переименовать</a>
                     </form>
 
                     <form class="col-2" method="post">
                         <input hidden type="text" name="send" value="delete_____{{ video[2] }}">
-                        <input class="btn btn-dark btn-video" style="color: white;" type="submit" value="Удалить"></input>
+                        <input class="btn btn-dark btn-sm btn-video" style="color: white; background-color: #cb121b;" type="submit" value="Удалить"></input>
                     </form>
 
                 <form method="post" id="rename_video_{{ video[0] }}" class="display-none" style="padding-top: 10px;">
@@ -26,7 +26,7 @@ About
                         <input hidden type="text" name="send" value="rename_____{{ video[0] }}">
                       <input type="text" class="form-control" name="name" placeholder="Новое имя для видео" aria-describedby="basic-addon2">
                       <div class="input-group-append">
-                        <button class="btn btn-dark btn-video" type="submit">Сохранить</button>
+                        <button class="btn btn-dark btn-sm btn-video" type="submit">Сохранить</button>
                       </div>
                     </div>
                 </form>

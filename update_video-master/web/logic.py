@@ -4,6 +4,18 @@ from sql_logic import *
 from app import path_all_video
 
 
+def logging(log_data):
+    with open('log.txt', 'a') as f:
+        date_now = datetime.now().strftime("%d.%m.%y %H:%M")
+        f.write(f"{date_now} - {log_data}\n")
+
+
+def logging_errors(log_data):
+    with open('error.txt', 'a') as f:
+        date_now = datetime.now().strftime("%d.%m.%y %H:%M")
+        f.write(f"{date_now} - {log_data}\n")
+
+
 class Nuke:
     def __init__(self, id_nuke, ip, name, comment):
         self.id = id_nuke
@@ -15,31 +27,19 @@ class Nuke:
         self.status = None
         self.status_ping = ping_nuke(self.ip)
 
-    def update_video(self, markers):
-        for mark in markers:
-            if mark in self.videos:
-                pass
-
     def add_video(self, id_video):
-        # sql для видео по айди => добавить видео в класс => добавить\удалить видео в скуль => загрузить\удалить ftp
         full_info_video = sql_get_info_video_from_id(id_video)
         self.videos.append(full_info_video)
         sql_create_link_video_and_nuke(self.id, id_video)
         full_name_video = full_info_video[2]
-        # print(full_name_video)
         send_data(self.ip, f"DownloadVideo_____{full_name_video}")
-        # print(feedback)
-        # print(f"На нюке: {self.id} добавить видео: {id_video}")
 
     def delete_video(self, id_video):
         sql_delete_link_video_and_nuke(self.id, id_video)
         full_info_video = sql_get_info_video_from_id(id_video)
         self.videos.remove(full_info_video)
         full_name_video = full_info_video[2]
-        # print(full_name_video)
         send_data(self.ip, f"DeleteVideo_____{full_name_video}")
-        # print(feedback)
-        # print(f"на нюке: {self.id}, удалить видео: {id_video}")
 
     def check_connection(self):
         try:
@@ -53,24 +53,9 @@ class Nuke:
 
     def play_video(self):
         send_data(self.ip, 'Play_____')
-        # feedback = send_data(self.ip, f"CheckConnections_____")
-        # if feedback:
-        #     print('Yea')
-        #     return True
-        # else:
-        #     print('No ) =')
-        #     return False
 
     def print_info(self):
         print(f"{self.name}: {self.videos}")
-
-    # def ping_nuke(self):
-    #     response = os.system(f"ping -n 1 {ip}")
-    #     print(response)
-    #     if response == 0:
-    #         return True
-    #     else:
-    #         return False
 
     def sync_video(self):
         pass
@@ -86,8 +71,7 @@ def compare_lists(list_1, list2):
 
 
 def ping_nuke(ip):
-    response = os.system(f"ping -n 1 -w 10 {ip}")
-    print(response)
+    response = os.system(f"ping -n 1 -w 10 {ip} > None")
     if response == 0:
         return True
     else:
@@ -106,14 +90,18 @@ def ping_nuke(ip):
             ParseVideo
  """
 def send_data(ip, send):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # sock.settimeout(0.7)
-    sock.connect((ip, 55000))
-    data_send = f'{send}'
-    sock.send(bytes(data_send, encoding='UTF-8'))
-    data_rec = sock.recv(1024).decode('UTF-8')
-    sock.close()
-    return data_rec
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # sock.settimeout(0.7)
+        sock.connect((ip, 55000))
+        data_send = f'{send}'
+        sock.send(bytes(data_send, encoding='UTF-8'))
+        data_rec = sock.recv(1024).decode('UTF-8')
+        sock.close()
+        return data_rec
+    except socket.error as er:
+        logging_errors(f"error {er}: {ip} try {send}")
+        return data_rec
 
 
 def get_all_nukes():
@@ -126,7 +114,6 @@ def get_all_nukes():
                            nukes.get(cache_nuke).get('name'),
                            nukes.get(cache_nuke).get('comment'))
         all_nukes.append(nuke_object)
-
     return all_nukes
 
 
@@ -136,37 +123,35 @@ def check_playlist_sql_physic(ip_nuke, id_nuke):
     video_on_hard_nuke = send_data(ip_nuke, f"CheckPhysicVideos_____").split('____')  # 1 лист
     video_on_hard_nuke.sort()
 
-    """ ВЫВЕСТИ В ОТДЕЛЬНУЮ ФУНКЦИЮ? """
-    print(video_on_hard_nuke)
-    print(sql_video_on_nuke)
     not_in_nuke = compare_lists(sql_video_on_nuke, video_on_hard_nuke)
     not_in_mark = compare_lists(video_on_hard_nuke, sql_video_on_nuke)
-    # print(not_in_mark)
-    # print(not_in_nuke)
+
     for item in not_in_nuke:  # если видео нет на нюке, но помечено маркером
         id_video = sql_id_from_name_video(item)
-        print(f'Добавляем на {id_nuke} видео {item}')
-
         ip_nuke, video_name, full_name = sql_get_ip_name_fname(id_nuke, id_video)
-
-        print(f'Добавляем на {ip_nuke} видео {video_name} с тру именем {full_name}')
-        send_data(ip_nuke, f'DownloadVideo_____{full_name}')
-        sql_create_link_video_and_nuke(id_nuke, id_video)
+        try:
+            send_data(ip_nuke, f'DownloadVideo_____{full_name}')
+            sql_create_link_video_and_nuke(id_nuke, id_video)
+            logging(f' {ip_nuke}: download video {full_name} name {video_name} - OK')
+        except:
+            logging_errors(f'{ip_nuke}: download {full_name} name {video_name}')
         """ Передача айди нюка и айди видео, отправить команду для скачивания видео и добавления в плейлист """
     for item in not_in_mark:  # если видео есть на нюке, но не помечено маркером
         try:
             id_video = sql_id_from_name_video(item)
             ip_nuke, video_name, full_name = sql_delete_link_video_and_nuke(id_nuke, id_video)
+            send_data(ip_nuke, f'DeleteVideo_____{item}')
+            logging(f'{ip_nuke}: delete {full_name} name {video_name} - OK')
         except:
-            pass
-        print(f'Удаляем с {id_nuke} видео {item}')
-        send_data(ip_nuke, f'DeleteVideo_____{item}')
+            logging_errors(f'{ip_nuke}: delete {full_name} name {video_name}')
         """ передача айди нюка и айди видео, отправить на нюк команду удаления видео """
 
 
 def delete_video_from_host(video_name):
     try:
         os.remove(f'{path_all_video}\\{video_name}')
+        sql_delete_video(video_name)
+        logging(f"delete {video_name} from host")
     except os.error as error:
+        logging_errors(f"delete {video_name}")
         print(error)
-    sql_delete_video(video_name)

@@ -13,9 +13,7 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = path_all_video
 
 
-""" главная страничка """
-
-
+# главная страничка
 @app.route('/', methods=['POST', 'GET'])
 def index():
     sql_check_and_create_bd()
@@ -23,14 +21,6 @@ def index():
         all_nukes = get_all_nukes()
     except:
         pass
-    # all_videos = sql_get_all_videos()
-    # nukes = sql_get_all_nukes()  # возвращает словарь всех нюков.
-    # # name{'ip_nuke': ip, 'name': name, 'id_nuke': id_nuke, 'comment': comment}
-    # all_nukes = []
-    # for nuke in nukes:
-    #     nuke = Nuke(nukes.get(nuke).get('id_nuke'), nukes.get(nuke).get('ip_nuke'), nukes.get(nuke).get('name'),
-    #                 nukes.get(nuke).get('comment'))
-    #     all_nukes.append(nuke)
 
     if request.method == 'POST':
         response_marks = request.values.lists()
@@ -45,19 +35,17 @@ def index():
             nuke_id = response_marks[0][1]
             markers = []
 
-        # print(nuke_form)
-        # print(markers)
-
         nuke_response_id = nuke_id[0]
         for nuke in all_nukes:
             all_video_on_nuke = []
             video_for_delete = []
+
             for video in nuke.videos:
                 all_video_on_nuke.append(video[0])
                 if str(nuke_response_id) == str(nuke.id):
                     if str(video[0]) not in markers:
                         video_for_delete.append(video[0])
-                        # print(f"Нет в марке, но есть на нюке {nuke.id}: {int(video)}")
+
             for vid in video_for_delete:
                 print(vid)
                 nuke.delete_video(vid)
@@ -71,24 +59,13 @@ def index():
                 send_data(nuke.ip, 'Stop_____')
                 send_data(nuke.ip, 'Play_____')
 
-            # print(f"в марке, но нет на нюке {nuke.id}: {int(video)}")
-            # print(all_video_on_nuke)
-            # print(markers)
-        # test_dict = { "nuke": nuke_resp, "markers": markers}
-        # print(test_dict)
         return "response_marks"
-
-        # return jsonify(test_dict)
-        # return render_template("index.html", test_dict=test_dict)
-        # return render_template("index.html", nukes=nukes, all_videos=all_videos, all_nukes=all_nukes)
     else:
         all_video = sql_get_all_videos()
         return render_template("index.html", all_videos=all_video, all_nukes=all_nukes)
 
 
-""" страничка /about """
-
-
+# отлов некоторых событий
 @app.route('/handler/<id>', methods=['POST'])
 def handler(id):
     all_nukes = get_all_nukes()
@@ -150,6 +127,14 @@ def all_nuke():
             ip_nuke = sql_ip_nuke(id_nuke)[0]
             check_playlist_sql_physic(ip_nuke, id_nuke)
             return 'ok'
+        elif request.form['name'].split('_')[0] == 'check':
+            id_nuke = request.form['name'].split('_')[1]
+            ip_nuke = sql_ip_nuke(id_nuke)[0]
+            value = send_data(ip_nuke, 'CheckConnections_____')
+            if value is True:
+                return 'vse ok'
+            else:
+                return 'ne ok'
         else:
             name = request.form['name']
             ip = request.form['ip']
@@ -214,6 +199,11 @@ def all_videos():
     else:
         all_video = sql_get_all_videos()
         return render_template('videos.html', all_video=all_video)
+
+
+@app.route('/faq')
+def faq():
+    return render_template('faq.html')
 
 
 if __name__ == "__main__":
