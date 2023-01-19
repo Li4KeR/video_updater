@@ -25,7 +25,7 @@ class Nuke:
         self.videos = sql_get_all_video_on_nuke(id_nuke)
         # self.status = self.check_connection()
         self.status = None
-        self.status_ping = ping_nuke(self.ip)
+        self.status_ping = sql_get_ping_status(self.id)[0]
 
     def add_video(self, id_video):
         full_info_video = sql_get_info_video_from_id(id_video)
@@ -89,6 +89,8 @@ def ping_nuke(ip):
             DeleteVideo_____{имя файла} - удалить файл на нюке.
             ParseVideo
  """
+
+
 def send_data(ip, send):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

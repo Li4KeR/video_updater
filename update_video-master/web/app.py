@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from sql_logic import *
 from logic import *
+from threading import Thread
 
 import time
 
@@ -206,5 +207,30 @@ def faq():
     return render_template('faq.html')
 
 
+def check_nukes():
+    while True:
+        all_nukes = get_all_nukes()
+        for nuke in all_nukes:
+            if ping_nuke(nuke.ip):
+                sql_exchange_ping(nuke.id, "1")
+            else:
+                sql_exchange_ping((nuke.id, "0"))
+        time.sleep(5)
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    thread_web = Thread(target=app.run, kwargs={'host': "0.0.0.0"})
+    thread_check = Thread(target=check_nukes)
+    thread_check.start()
+    thread_web.start()
+    thread_check.join()
+    thread_web.join()
+#     app.run(debug=True)
+#
+# thread1 = Thread(target=prescript, args=(200,))
+# thread2 = Thread(target=prescript, args=(100,))
+#
+# thread1.start()
+# thread2.start()
+# thread1.join()
+# thread2.join()

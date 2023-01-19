@@ -18,7 +18,8 @@ def sql_check_and_create_bd():
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL UNIQUE,
                     ip TEXT NOT NULL UNIQUE,
-                    comment TEXT);
+                    comment TEXT,
+                    ping TEXT);
                     """)
         # таблица для ассоциации видео на нюках
         cursor.execute("""CREATE TABLE IF NOT EXISTS linking(
@@ -150,7 +151,8 @@ def sql_get_all_nukes():
             name = item[1]
             ip = item[2]
             comment = item[3]
-            nuke[name] = {'ip_nuke': ip, 'name': name, 'id_nuke': id_nuke, 'comment': comment}
+            ping = item[4]
+            nuke[name] = {'ip_nuke': ip, 'name': name, 'id_nuke': id_nuke, 'comment': comment, 'ping': ping}
         return nuke
     except sqlite3.Error as error:
         error_text = "Ошибка при работе с SQLite ", error
@@ -322,3 +324,25 @@ def sql_edit_nuke(id_nuke, new_name, new_ip, new_comment):
     except sqlite3.Error as error:
         print(error)
 
+
+def sql_exchange_ping(id_nuke, ping_status):
+    conn = sqlite3.connect('base.sqlite3')
+    cursor = conn.cursor()
+    # print(f'INSERT INTO nuke(ping) VALUES("{ping_status}") WHERE id="{id_nuke}"')
+    try:
+        cursor.execute(f'UPDATE nuke SET ping="{ping_status}" WHERE id="{id_nuke}"')
+        conn.commit()
+    except sqlite3.Error as error:
+        error_text = "Ошибка при работе с SQLite ", error
+        print(error_text)
+    cursor.close()
+
+
+def sql_get_ping_status(id_nuke):
+    try:
+        conn = sqlite3.connect('base.sqlite3')
+        cursor = conn.cursor()
+        status_ping = cursor.execute(f'SELECT ping FROM nuke WHERE id="{id_nuke}"').fetchall()[0]
+        return status_ping
+    except sqlite3.Error as error:
+        print(error)
